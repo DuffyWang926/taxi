@@ -1,0 +1,28 @@
+.home{
+    width: 100%;
+    height: 100%;
+    padding:0 0 100px 0;
+    .homeSwiper{
+        width: 100%;
+        height: 400px;
+        .homeImg{
+            width: 100%;
+            height: 100%;
+        }
+    }
+    .homeSearch{
+        padding: 20px 0 0 0;
+        width: 100%;
+        height: 70px;
+    }
+    .typeList{
+        margin: 20px;
+        border-radius: 10px;
+        padding:20px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+}
+

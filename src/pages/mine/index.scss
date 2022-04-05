@@ -1,0 +1,98 @@
+.mine{
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    .mineTop{
+        text-align: center;
+        color:#333;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .mineInfoBox{
+        padding:40px 20px;
+        display: flex;
+        justify-content: space-between;
+        .mineInfoLeft{
+            box-sizing: border-box;
+            display: flex;
+            .mineImg{
+                width: 150px;
+                height: 150px;
+                border-radius: 50%;
+            }
+            .mineInfo{
+                padding:0 0 0 10px;
+                font-size: 18px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+            }
+        }
+        .mineInfoRight{
+            font-size: 16px;
+            .mineShareImg{
+                width:50px;
+                height: 50px;
+            }
+
+        }
+        
+    }
+    .mineMoney{
+        box-sizing: border-box;
+        padding: 20px;
+        display: flex;
+        justify-content: space-around;
+        .moneyType{
+            text-align: center;
+            font-size: 18px;
+        }
+    }
+    .wallet{
+        background: #fedb03;
+        width: 100%;
+        height: 100px;
+        display: flex;
+        padding:10px 20px;
+        box-sizing: border-box;
+        justify-content: space-between;
+        align-items: center;
+        .walletMoneyBox{
+            display: flex;
+            font-size: 18px;
+            align-items: center;
+            .walletMoney{
+                width: 50px;
+                height: 50px;
+            }
+            .moneyType{
+                padding:0 0 0 10px;
+            }
+
+        }
+        .withdraw{
+            padding:3px 20px;
+            font-size: 18px;
+            border-radius: 29px;
+            border: 1px solid #aaa;
+        }
+        
+    }
+    .clientService{
+        font-size: 20px;
+        position: absolute;
+        right: 10px;
+        bottom: 300px;
+        width: 100px;
+        height: 100px;
+        text-align: center;
+        .mineClientImg{
+            width: 50px;
+            height: 50px;
+        }
+    }
+    
+    
+}
+

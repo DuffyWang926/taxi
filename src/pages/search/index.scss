@@ -1,0 +1,17 @@
+.search{
+    width: 100%;
+    height: 100%;
+    .searchTop{
+        width: 100%;
+        height: 70px;
+    }
+    .searchList{
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        padding:10px;
+        box-sizing: border-box;
+        
+    }
+}
+
