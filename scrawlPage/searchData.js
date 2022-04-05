@@ -280,6 +280,7 @@ async function updateAmount(userId, amount, isParent){
         }
     }
 }
+
 module.exports = {
-    'GET /taxiapi/searchData': searchDataFn,
+    searchDataFn,
 };
