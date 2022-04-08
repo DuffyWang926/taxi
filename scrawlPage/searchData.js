@@ -5,7 +5,7 @@ const { searchPageData } = require('../scrawlPage/searchPageData')
 const _ = require('lodash')
 const log = console.log
 
-const searchDataFn = async (ctx, next) => {
+const searchDataFn = async () => {
     log('/taxiapi/searchData')
     //查询处理用户点击
     let userOrdersModel = model.userOrders
@@ -164,12 +164,7 @@ const searchDataFn = async (ctx, next) => {
         }
         
     }
-    ctx.response.body = {
-                            code:200,
-                            data:{
-                                
-                            }
-                        }
+  
     
     
 };

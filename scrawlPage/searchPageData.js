@@ -51,7 +51,11 @@ async function searchPageData (startTime) {
         }
         let startMonth = new Date(+startTime).getMonth() + 1
         let startDay = new Date(+startTime).getDate()
+        log(startTime)
         log(headerText)
+        log(startMonth)
+        log(headerMonth)
+        log(startMonth < headerMonth)
         if(startMonth < headerMonth){
             await page.click('.el-date-range-picker__header>button:nth-child(2)')
             await page.waitForTimeout(1000)
@@ -60,29 +64,29 @@ async function searchPageData (startTime) {
             await page.waitForTimeout(1000)
         }
         let rowList = await page.$$('.is-left>.el-date-table>tbody>.el-date-table__row>.available')
-        await rowList[+startDay-1].click()
-        await rowList[+startDay-1].click()
-        await page.waitForTimeout(1000)
-        //获取数据
-        let tableRow = await page.$$('.el-table__fixed-body-wrapper>.el-table__body>tbody>.el-table__row') || []
-        for(let i = 0 ,len = tableRow.length; i < len; i++){
-            let tdList = await tableRow[i].$$('td') || []
-            log('tdList', tdList.length)
-            let data = {}
-            for(let j = 0, lenj = tdList.length; j < lenj; j++){
-                let text = await tdList[j].$eval('div', e => e.innerHTML)
-                if(j == 1){
-                    data.order_no = text
-                }else if(j == 5){
-                    data.paid_time = text
-                }else if(j == 11){
-                    data.settle_time = text
-                }else if(j == 12){
-                    data.settle_amount = text
-                }
-            }
-            dataList.push(data)
-        }
+        // await rowList[+startDay-1].click()
+        // await rowList[+startDay-1].click()
+        // await page.waitForTimeout(1000)
+        // //获取数据
+        // let tableRow = await page.$$('.el-table__fixed-body-wrapper>.el-table__body>tbody>.el-table__row') || []
+        // for(let i = 0 ,len = tableRow.length; i < len; i++){
+        //     let tdList = await tableRow[i].$$('td') || []
+        //     log('tdList', tdList.length)
+        //     let data = {}
+        //     for(let j = 0, lenj = tdList.length; j < lenj; j++){
+        //         let text = await tdList[j].$eval('div', e => e.innerHTML)
+        //         if(j == 1){
+        //             data.order_no = text
+        //         }else if(j == 5){
+        //             data.paid_time = text
+        //         }else if(j == 11){
+        //             data.settle_time = text
+        //         }else if(j == 12){
+        //             data.settle_amount = text
+        //         }
+        //     }
+        //     dataList.push(data)
+        // }
 
         // let node = await page.$eval('.el-table__fixed-body-wrapper>.el-table__body>tbody>.el-table__row', e => e.outerHTML)
         // log(node)

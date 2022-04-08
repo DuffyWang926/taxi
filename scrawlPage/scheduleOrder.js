@@ -7,4 +7,8 @@ const  scheduleCronstyle = ()=>{
     }); 
 }
 
-scheduleCronstyle();
+// scheduleCronstyle();
+
+module.exports = {
+    scheduleCronstyle
+}
