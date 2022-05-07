@@ -14,6 +14,7 @@ const loginJingDongFn = async (ctx, next) => {
             headless: true,
             // defaultViewport:null,
             // args: ['--start-maximized'],
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
     }
     
