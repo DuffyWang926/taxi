@@ -10,9 +10,9 @@ const loginJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/loginJingDong start'))
     if(!browser){
         browser = await puppeteer.launch({
-            // headless: false
-            headless: true,
-            // defaultViewport:null,
+            headless: false,
+            // headless: true,
+            defaultViewport:null,
             // args: ['--start-maximized'],
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
@@ -64,8 +64,8 @@ const searchJingDongFn = async (ctx, next) => {
         // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
-        page = null
-        browser = null
+        // page = null
+        // browser = null
         // await browser.close()
     } finally {
         // 最后要退出进程
@@ -261,6 +261,10 @@ async function validateLogin(page, parent){
             await mouseParent.waitForTimeout(2000)
             let nextNodeInit = await page.$('.JDJRV-slide-bar-center')
             if(nextNodeInit){
+                var centerContentNext = await page.evaluate(() => {
+                    return nextNodeInit.innerText;
+                });
+                console.log('centerContentNext',centerContentNext)
                 let centerContent = await page.$eval('.JDJRV-slide-bar-center', el => el.value) || '';
                 console.log('centerContent',centerContent)
                 if(centerContent && centerContent.includes('成功')){
