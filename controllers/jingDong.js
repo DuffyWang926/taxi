@@ -10,9 +10,9 @@ const loginJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/loginJingDong start'))
     if(!browser){
         browser = await puppeteer.launch({
-            headless: false,
+            // headless: false
+            headless: true,
             defaultViewport:null,
-            // defaultViewport: {width: 1300, height: 800}
             args: ['--start-maximized'],
         })
     }
@@ -32,6 +32,7 @@ const loginJingDongFn = async (ctx, next) => {
         // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
+        browser = null
         await browser.close()
     } finally {
         // 最后要退出进程
@@ -51,21 +52,19 @@ const loginJingDongFn = async (ctx, next) => {
 }
 const searchJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/searchjingdong start'))
-    let body = ctx.request.body
-    
+    let query = ctx.request.query
+    let goodsList = []
     try {
         if(!browser){
             await loginJingDongFn()
-        }else{
-
-         await searchGoods(browser)
         }
-
-        //登录
+        goodsList = await searchGoods(browser,query)
     } catch (error) {
         // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
+        page = null
+        browser = null
         // await browser.close()
     } finally {
         // 最后要退出进程
@@ -85,7 +84,7 @@ const searchJingDongFn = async (ctx, next) => {
     ctx.response.body = {
                         code:200,
                         data:{
-                            
+                            goodsList
                         }
                     }
     
@@ -190,7 +189,7 @@ const loginJingDongLianMeng = async (page) =>{
     let loginBtn = await frame.$('#paipaiLoginSubmit')
     if(loginBtn){
         loginBtn.click()
-        await frame.waitForTimeout(1000)
+        await frame.waitForTimeout(2000)
     }
     let next = await page.$(".JDJRV-bigimg >img")
     if(next){
@@ -279,36 +278,36 @@ async function validateLogin(page, parent){
 
 }
 
-async function searchGoods(browser){
+async function searchGoods(browser, query){
     let url = 'https://union.jd.com/overview'
     let goodsList = []
+    const { keyword, isInit, size } = query
+    debugger
     try {
         if(!page){
             page = await browser.newPage()
             await page.goto(url)
             await page.waitForSelector('.menu-wrapper')
+            let recommentMenu = await page.$('.menu-wrapper:nth-child(2)')
+            if(recommentMenu){
+                recommentMenu.click()
+                await page.waitForTimeout(1000)
+            }
+            let recommentMenuItem = await page.$('.menu-wrapper:nth-child(2) >.el-submenu >.el-menu >a')
+            if(recommentMenuItem){
+                recommentMenuItem.click()
+                await page.waitForTimeout(2000)
+                // await page.waitForSelector('.el-input__inner')
+            }
         }
-        
-        // await page.waitForTimeout(1000)
-        
         // let loginBtn = await page.$('.el-button--primary')
         // if(loginBtn){
         //     loginBtn.click()
         //     await page.waitForTimeout(1000)
         // }
-        let recommentMenu = await page.$('.menu-wrapper:nth-child(2)')
-        if(recommentMenu){
-            recommentMenu.click()
-            await page.waitForTimeout(1000)
-        }
-        let recommentMenuItem = await page.$('.menu-wrapper:nth-child(2) >.el-submenu >.el-menu >a')
-        if(recommentMenuItem){
-            recommentMenuItem.click()
-            await page.waitForTimeout(2000)
-            // await page.waitForSelector('.el-input__inner')
-        }
         
-        let searchKey = '手机'
+        
+        let searchKey = keyword || ''
         let searchInput = await page.$('.el-input__inner')
         if(searchInput){
             await page.type('.el-input__inner', searchKey)
@@ -320,11 +319,16 @@ async function searchGoods(browser){
         }
         let goodNodeList = await page.$$('.search-card')
         console.log('goodNodeList.length',goodNodeList.length)
-        for(let i =0 ,len = goodNodeList.length; i < len; i++ ){
+        let goodLen = goodNodeList.length
+        if(size < goodLen){
+            goodLen = +size 
+        }
+        for(let i =0 ; i < goodLen; i++ ){
             let item = goodNodeList[i]
             let imgNode = item.$('a >img')
             let imgSrc = ''
             let buyUrl = ''
+            let couponUrl = ''
             let title = ''
             let price = ''
             let returnRate= 0
@@ -335,29 +339,36 @@ async function searchGoods(browser){
                 imgSrc = await item.$eval('a >img', el => el.src);
             }
             //url
-            let buyNode = await item.$('div:nth-of-type(5) >.el-button:nth-child(2)')
-            if(!buyNode){
-                buyNode = await item.$('div:nth-of-type(4) >.el-button:nth-child(2)')
+            if(isInit !== '0'){
+                let buyNode = await item.$('div:nth-of-type(5) >.el-button:nth-child(2)')
+                if(!buyNode){
+                    buyNode = await item.$('div:nth-of-type(4) >.el-button:nth-child(2)')
+                }
+                if(buyNode){
+                    buyNode.click()
+                    await page.waitForTimeout(2000)
+                    // let tabNode = await page.$('#tab-1')
+                    // if(tabNode){
+                    //     tabNode.click()
+                    //     await page.waitForTimeout(1000)
+                    // }
+                    let inputNode = await page.$('.el-textarea >textarea')
+                    if(inputNode){
+                        buyUrl = await page.$eval('.el-textarea >textarea', el => el.value)
+                    }
+                    let couponInputNode = await page.$('#pane-0 >.el-row >.el-col >.el-input >.el-input__inner')
+                    if(couponInputNode){
+                        couponUrl = await page.$eval('#pane-0 >.el-row >.el-col >.el-input >.el-input__inner', el => el.value)
+                    }
+                    let closeBtn = await page.$('.promote >.el-dialog >.el-dialog__header >.el-dialog__headerbtn >.el-dialog__close')
+                    if(closeBtn){
+                        closeBtn.click()
+                        await page.waitForTimeout(1000)
+                    }
+                }
+
             }
-            if(buyNode){
-                buyNode.click()
-                await page.waitForTimeout(2000)
-                let tabNode = await page.$('#tab-1')
-                if(tabNode){
-                    tabNode.click()
-                    await page.waitForTimeout(1000)
-                }
-                let inputNode = await page.$('.el-textarea >textarea')
-                if(inputNode){
-                    buyUrl = await page.$eval('.el-textarea >textarea', el => el.value)
-                }
-                let closeBtn = await page.$('.promote >.el-dialog >.el-dialog__header >.el-dialog__headerbtn >.el-dialog__close')
-                if(closeBtn){
-                    console.log('closeBtn')
-                    closeBtn.click()
-                    await page.waitForTimeout(1000)
-                }
-            }
+            
             
             //title
             let titleNode = await item.$('.two >a')
@@ -387,6 +398,7 @@ async function searchGoods(browser){
                 price,
                 returnRate,
                 returnMoney,
+                couponUrl,
                 shop
             }
             goodsList.push(res)
