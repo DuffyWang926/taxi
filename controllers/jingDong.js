@@ -199,6 +199,7 @@ const loginJingDongLianMeng = async (page) =>{
 }
 
 async function validateLogin(page, parent){
+    log(chalk.yellow('validateLogin start'))
     let validateFlag = false 
     while(!validateFlag){
         console.log('while start')
@@ -284,6 +285,7 @@ async function validateLogin(page, parent){
 }
 
 async function searchGoods(browser, query){
+    log(chalk.yellow('searchGoods start'))
     let url = 'https://union.jd.com/overview'
     let goodsList = []
     const { keyword, isInit, size } = query
