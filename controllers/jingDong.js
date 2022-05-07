@@ -10,8 +10,8 @@ const loginJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/loginJingDong start'))
     if(!browser){
         browser = await puppeteer.launch({
-            headless: false,
-            // headless: true,
+            // headless: false,
+            headless: true,
             defaultViewport:null,
             // args: ['--start-maximized'],
             args: ['--no-sandbox', '--disable-setuid-sandbox']
