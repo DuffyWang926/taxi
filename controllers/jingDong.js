@@ -261,6 +261,7 @@ async function validateLogin(page, parent){
             let nextNodeInit = await page.$('.JDJRV-slide-bar-center')
             if(nextNodeInit){
                 var centerContentNext = await page.evaluate(() => {
+                    let nextNodeInit = document.getElementsByClassName('.JDJRV-slide-bar-center')
                     return nextNodeInit.innerText;
                 });
                 console.log('centerContentNext',centerContentNext)
