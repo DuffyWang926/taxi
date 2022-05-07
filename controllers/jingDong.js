@@ -12,8 +12,8 @@ const loginJingDongFn = async (ctx, next) => {
         browser = await puppeteer.launch({
             // headless: false
             headless: true,
-            defaultViewport:null,
-            args: ['--start-maximized'],
+            // defaultViewport:null,
+            // args: ['--start-maximized'],
         })
     }
     
