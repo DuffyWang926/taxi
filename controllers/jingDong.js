@@ -273,7 +273,6 @@ async function validateLogin(page, parent){
             }else{
                 console.log('tiaozhuan')
             }
-            await mouseParent.waitForNavigation()
             let nextNode = await mouseParent.$('#tab-account')
             if(!nextNode){
                 console.log('tiaozhuan')
