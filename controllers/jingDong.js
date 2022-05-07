@@ -261,8 +261,9 @@ async function validateLogin(page, parent){
             let nextNodeInit = await page.$('.JDJRV-slide-bar-center')
             if(nextNodeInit){
                 var centerContentNext = await page.evaluate(() => {
-                    let nextNodeInit = document.getElementByClassName('.JDJRV-slide-bar-center')
-                    return nextNodeInit.innerText;
+                    let nextNodeInit = document.getElementsByClassName('.JDJRV-slide-bar-center') || []
+                    let centerNode = nextNodeInit[0]
+                    return centerNode.innerText;
                 });
                 console.log('centerContentNext',centerContentNext)
                 let centerContent = await page.$eval('.JDJRV-slide-bar-center', el => el.value) || '';
