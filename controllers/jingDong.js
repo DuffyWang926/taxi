@@ -192,7 +192,7 @@ const loginJingDongLianMeng = async (page) =>{
         loginBtn.click()
         await frame.waitForTimeout(2000)
     }
-    let next = await page.$(".JDJRV-bigimg >img")
+    let next = await frame.$(".JDJRV-bigimg >img")
     if(next){
         await validateLogin(frame, page)
     }
