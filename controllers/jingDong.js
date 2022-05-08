@@ -12,9 +12,11 @@ const loginJingDongFn = async (ctx, next) => {
         browser = await puppeteer.launch({
             // headless: false,
             headless: true,
-            defaultViewport:null,
+            // defaultViewport:{ width: 800, height: 800 },
+            // defaultViewport:null,
             // args: ['--start-maximized'],
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            // args: ['--no-sandbox', '--disable-setuid-sandbox','--start-maximized']
+            args: ['--no-sandbox', '--disable-setuid-sandbox',]
         })
     }
     
@@ -22,9 +24,16 @@ const loginJingDongFn = async (ctx, next) => {
     let url = 'https://union.jd.com/index'
     try {
         const page = await browser.newPage()
-        await page.goto(url)
+        await page.goto(url,{waitUntil: 'load', timeout: 0})
         log(chalk.yellow('京东页面初次加载完毕'))
         await page.content();
+        await page.evaluate(() => {
+            localStorage.setItem('_isGotoIndexFlag', '2');
+            let user = '{"appAgree":0,"calendar":0,"cpActivity":0,"cpcAgree":0,"cpsAgree":1,"isCeleShop":0,"isContent":0,"isOperate":0,"isGK":0,"isMotherPower":0,"isChannel":0,"qualificationStatus":0,"register":1,"nickName":"等月的树","haveMultipleAccounts":false,"yunBigImageUrl":""}'
+            localStorage.setItem('UNION_ROLES', user);
+            localStorage.setItem('register', 1);
+            
+        });
         // loginJingDong(page)
         await loginJingDongLianMeng(page)
 
@@ -33,8 +42,8 @@ const loginJingDongFn = async (ctx, next) => {
         // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
-        browser = null
-        await browser.close()
+        // browser = null
+        // await browser.close()
     } finally {
         // 最后要退出进程
         // await browser.close()
@@ -174,6 +183,7 @@ const loginJingDong = async (page) => {
 }
 
 const loginJingDongLianMeng = async (page) =>{
+    log(chalk.yellow('loginJingDongLianMeng start'))
     await page.waitForSelector("iframe[id='indexIframe']")
     let accountTab = await page.$('#tab-account')
     if(accountTab){
@@ -192,10 +202,10 @@ const loginJingDongLianMeng = async (page) =>{
         loginBtn.click()
         await frame.waitForTimeout(2000)
     }
-    let next = await frame.$(".JDJRV-bigimg >img")
-    if(next){
-        await validateLogin(frame, page)
-    }
+    // let next = await frame.$(".JDJRV-bigimg >img")
+    // if(next){
+    //     await validateLogin(frame, page)
+    // }
 }
 
 async function validateLogin(page, parent){
@@ -260,9 +270,9 @@ async function validateLogin(page, parent){
             await mouseParent.waitForTimeout(2000)
             let nextNodeInit = await page.$('.JDJRV-slide-bar-center')
             if(nextNodeInit){
-                var centerContentNext = await page.evaluate(() => {
+                let centerContentNext = await page.evaluate(() => {
                     let nextNodeInit = document.getElementsByClassName('.JDJRV-slide-bar-center') || []
-                    let centerNode = nextNodeInit[0]
+                    let centerNode = nextNodeInit[0] || {}
                     return centerNode.innerText;
                 });
                 console.log('centerContentNext',centerContentNext)
@@ -287,7 +297,8 @@ async function validateLogin(page, parent){
 
 async function searchGoods(browser, query){
     log(chalk.yellow('searchGoods start'))
-    let url = 'https://union.jd.com/overview'
+    // let url = 'https://union.jd.com/overview'
+    let url = 'https://union.jd.com/proManager/index?keywords='
     let goodsList = []
     const { keyword, isInit, size } = query
     debugger
@@ -295,25 +306,18 @@ async function searchGoods(browser, query){
         if(!page){
             page = await browser.newPage()
             await page.goto(url)
-            await page.waitForSelector('.menu-wrapper')
-            let recommentMenu = await page.$('.menu-wrapper:nth-child(2)')
-            if(recommentMenu){
-                recommentMenu.click()
-                await page.waitForTimeout(1000)
-            }
-            let recommentMenuItem = await page.$('.menu-wrapper:nth-child(2) >.el-submenu >.el-menu >a')
-            if(recommentMenuItem){
-                recommentMenuItem.click()
-                await page.waitForTimeout(2000)
-                // await page.waitForSelector('.el-input__inner')
-            }
+            // await page.waitForSelector('.menu-wrapper')
+            // let recommentMenu = await page.$('.menu-wrapper:nth-child(2)')
+            // if(recommentMenu){
+            //     recommentMenu.click()
+            //     await page.waitForTimeout(1000)
+            // }
+            // let recommentMenuItem = await page.$('.menu-wrapper:nth-child(2) >.el-submenu >.el-menu >a')
+            // if(recommentMenuItem){
+            //     recommentMenuItem.click()
+            //     await page.waitForTimeout(2000)
+            // }
         }
-        // let loginBtn = await page.$('.el-button--primary')
-        // if(loginBtn){
-        //     loginBtn.click()
-        //     await page.waitForTimeout(1000)
-        // }
-        
         
         let searchKey = keyword || ''
         let searchInput = await page.$('.el-input__inner')
