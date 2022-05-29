@@ -12,7 +12,7 @@ async function handleImg(path){
        const pixels = res
        if(res.data){
             let { shape } = pixels
-            console.log('shape', shape)
+            // console.log('shape', shape)
             let len = 0
             let lenj = 0
             let lenk = 0
@@ -48,7 +48,7 @@ async function handleImg(path){
                             let locationListInit = repleatObjList[m].locationList
                             let location = [i,j]
                             let locationLimitNext = {}
-                            let colorGap = 15
+                            let colorGap = 10
                             let aFlag = Math.abs( listInit[0]-pList[0]) < colorGap 
                             let bFlag = Math.abs( listInit[1]-pList[1]) < colorGap
                             let cFlag = Math.abs( listInit[2]-pList[2]) < colorGap
@@ -194,7 +194,6 @@ async function handleImg(path){
                 goalLocationInit.forEach( (v,i) => {
                     let goalLocation = v.locationList
                     if( i >= 0 && i <= 2){
-                        console.log('goalLocationInit', )
                         let goalLocationLimit = getLocationLimit(goalLocation)
                         locationLimitList.push(goalLocationLimit)
                     }
@@ -206,7 +205,7 @@ async function handleImg(path){
                         minXEnd = temp
                     }
                 })
-                console.log('locationLimitList',locationLimitList)
+                // console.log('locationLimitList',locationLimitList)
                 minX = minXEnd
                 locationLimitList.forEach( (v,i) =>{
                     if(minXEnd ==  v.minX){
@@ -237,7 +236,7 @@ async function handleImg(path){
         
             return res
        }
-        console.log('res',res)
+        // console.log('res',res)
     }catch(e){
         throw(e)
     }
@@ -246,8 +245,8 @@ async function handleImg(path){
 async function handleImgToPostition(bigImg,smallImg){
     let result =  await handleImg(bigImg)
     let resultKey =  await handleImg(smallImg)
-    console.log('handle result', result)
-    console.log('handle resultKey', resultKey)
+    // console.log('handle result', result)
+    // console.log('handle resultKey', resultKey)
     const { minX, maxX, width } = result || {}
     if(maxX == 0){
         return false
@@ -296,7 +295,7 @@ function getLocationLimit(goalLocation){
             }
         }
     })
-    console.log('min', minX, maxX, minY, maxY)
+    // console.log('min', minX, maxX, minY, maxY)
     let goalRes = {}
     goalLocation.forEach( v =>{
         let val = v[0]
