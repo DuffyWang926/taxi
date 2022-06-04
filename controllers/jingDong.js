@@ -361,8 +361,8 @@ const loginJingDongLianMeng = async (page) =>{
 }
 
 const loginJingDongFrame = async (frame,page) =>{
-    // let name = '17319075327'
-    let name = '17319075339'
+    let name = '17319075327'
+    // let name = '17319075339'
     let pwd = 'wef1991926'
     await frame.type('.item-ifo >input', name)
     await frame.type('#nloginpwd', pwd)
@@ -662,7 +662,7 @@ const searchGooodsJDFn = async (ctx, next) => {
     let query = ctx.request.query
     log(chalk.yellow('/taxiapi/searchGooodsJDFn start'))
     // let url = `http://192.168.0.107:3001/taxiapi/searchjingdong`
-    let url = `http://5403917lb3.51vip.biz:12931/taxiapi/searchjingdong`
+    let url = `http://5403917lb3.51vip.biz/taxiapi/searchjingdong`
     
     
     let response = await axios({
@@ -684,5 +684,4 @@ module.exports = {
     'GET /taxiapi/searchjingdong': searchJingDongFn,
     'GET /taxiapi/searchgoodsjd': searchGooodsJDFn,
     'GET /taxiapi/loginjingdong': loginJingDongFn,
-
 };

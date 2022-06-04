@@ -127,7 +127,7 @@ var fn_login = async (ctx, next) => {
     
 }
 
-async function fnGetOpenId(){
+async function fnGetOpenId(ctx){
     let body = ctx.request.body
     let { code } = body
     let secret = '1d3b61572a9edbb288b25472f4e1fb60'
@@ -147,9 +147,21 @@ async function fnGetOpenId(){
 
 }
 
+async function fnHome(ctx){
+    let body = ctx.request.body
+   
+    ctx.response.body = {
+        code:200,
+        data:{
+            text:'OK'
+        }
+    }
+
+}
 
 module.exports = {
     'POST /taxiapi/login': fn_login,
     'GET /taxiapi/login': fn_login,
+    'GET /': fnHome,
     'POST /taxiapi/getopenid': fnGetOpenId,
 };
