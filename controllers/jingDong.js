@@ -8,41 +8,194 @@ const log = console.log
 let page = null
 let browser = null
 let isLogin = false
+let shtmlNum = 0
 const loginJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/loginJingDong start'))
     if(!browser){
         browser = await puppeteer.launch({
             headless: false,
             // headless: true,
-            // devtools:true,
+            devtools:true,
 
             // defaultViewport:{ width: 1800, height: 800 },
             // defaultViewport:null,
-            // args: ['--start-maximized'],
-            // args: ['--no-sandbox', '--disable-setuid-sandbox','--start-maximized']
-            // args: ['--no-sandbox', '--disable-setuid-sandbox',]
+            // args: ['--no-sandbox', '--disable-setuid-sandbox','--start-maximized','--incognito',]
+            // args: ['--no-sandbox','--incognito',]
             args: ['--no-sandbox']
         })
     }
     
     // let url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F'
     let url = 'https://union.jd.com/index'
+    // let url = 'https://www.mengshikejiwang.top/#/pages/index/index'
     try {
         const firstPage = await browser.newPage()
-        await firstPage.setUserAgent('"Mozilla/5.0 (Windows NT 6.0) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.36 Safari/536.5"')
-        await firstPage.evaluateOnNewDocument('() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) }')
+        await firstPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36')
+        await firstPage.evaluateOnNewDocument(() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) })
+        
+       
+        await firstPage.setRequestInterception(true);
+        // firstPage.on('request', (request) => { request.continue();})
+        firstPage.on('request', (request) => {
+            let url = request.url()
+            let path = url.replace('https://iv.jd.com','')
+            
+            let cookie = 'RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vwfo&sl=0&tt=0"; __jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248'
+            let manulHeadersFirst = {
+                    ':authority':'iv.jd.com',
+                    ':method':'GET',
+                    ':path':path,
+                    ':scheme':'https',
+                    "Accept":'*/*',
+                    "Accept-Encoding":'gzip, deflate, br',
+                    'Accept-Language':'zh-CN,zh;q=0.9',
+                    'Connection':'keep-alive',
+                    'cookie':cookie,
+                    'Host':'iv.jd.com',
+                    'Referer':'https://passport.jd.com/',
+                    'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+                    'sec-ch-ua-mobile':'?0',
+                    'sec-ch-ua-platform':'"Windows"',
+                    'Sec-Fetch-Dest':'script',
+                    'Sec-Fetch-Mode':'no-cors',
+                    'Sec-Fetch-Site':'same-site',
+                    }
+            let cookieSecond = '__jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248; 3AB9D23F7A4B3C9B=SVJPZUO4OFVV757GORUJHZRMNZ7DZCUJ6CMQ4TMBAYHH6D46DOCHBTTHNSZZU53BK7LGX7RYU4JKSN6627YORSNZLE; JSESSIONID=0EF4DD07ECA4FC6A1B2F831252C15A70.s1; RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vvzr&sl=1&tt=22r&ld=2v1"'
+            let manulHeadersSecond = {
+                    ':authority':'iv.jd.com',
+                    ':method':'GET',
+                    ':path':path,
+                    "Accept":'*/*',
+                    "Accept-Encoding":'gzip, deflate, br',
+                    'Accept-Language':'zh-CN,zh;q=0.9',
+                    'Connection':'keep-alive',
+                    'Cookie':cookieSecond,
+                    // 'Cookie':'',
+                    // 'cookie':'',
+                    'Host':'iv.jd.com',
+                    'Referer':'https://passport.jd.com/',
+                    'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+                    'sec-ch-ua-mobile':'?0',
+                    'sec-ch-ua-platform':'"Windows"',
+                    'Sec-Fetch-Dest':'script',
+                    'Sec-Fetch-Mode':'no-cors',
+                    'Sec-Fetch-Site':'same-site',
+            }
+            let nextHeaders = Object.assign({}, request.headers(),manulHeadersFirst )
+            
+            if (request.resourceType() === 'image') {
+                request.continue();
+            } else {
+                if(url.includes('s.html')){
+                    shtmlNum++
+                    let headers = JSON.stringify(request.headers())
+                    if(shtmlNum > 0){
+                        nextHeaders = Object.assign({}, request.headers(),manulHeadersSecond )
+                        // nextHeaders = manulHeadersSecond 
+                    }
+                    log(chalk.yellow('request header log', headers))
+
+                    log(chalk.yellow('request log', request.url()))
+                    let urlFirst = url.split('?')
+                    let urlSecond = urlFirst[1] && urlFirst[1].split('&')
+                    let urlThirdEnd = []
+                    let jsonText = ''
+                    let urlThird = Array.isArray(urlSecond) && urlSecond.map( v =>{
+                        let res = v
+                        let urlFour = v && v.split('=')
+                        let key = ''
+                        let value = ''
+                        if(urlFour.length > 1){
+                            key = urlFour[0]
+                            value = urlFour[1]
+                        }
+                        if(key == 'd'){
+                            if(shtmlNum == 1){
+                                value = '000002Ao4EAGf~101000000310100100011030010003102001000110200200031030010002101000000110300200031010010001103001000310100000011020000003102003000110200100031010010002102001000110200100031020010001102000000300000100011030020003101000000110200100031020010002102002000110100100031020000001102002000310300200011020000003000001000110200000031020020001102001000210200200031020010001102001000310200100011010010003102001000110300100031020010001101001000210100200031030000001101000000310100100011010010003101001000110100100021020000003101001000410100100011010010005101000000400000100010000010009101001001k0000010001000001000k0000010008000001000u0000010006000001000e002001000a00100000020000010007000001000100000100060000010004000000000200100200060000010006001001000800100000080010000016000000000K000000000t00010100mP000102000600010100040001010002101000000200010100020001010004101101000200010100040001020002101101000400010100020001010004000102000210100000020001010002000102000400010100020001010002000102000400010100021011010004000101000200010100020001020002101000000200010100041011010002000101000200010100020001010006000101000200010100040001010004000101000c000101000200010100040001010008000101000k1010000004000101000a000101000e000101001I000101001Q000101000m001000003G000101000200210100040010000002000000000200300000020011010002003102000200200000020031010002002000000200200000020041010002002101000200410100020041020002005101000200510100020051010002007000000200410200020061020002006101000200500000020071010002007102000210310n00oq109002000210e002000410a003000010b001000210a00200021080030002108001000210900200021060010002107002000210600000021050030002105001000210400000021060010002102001000210400100021030010002103000000210200100021030010002103000000210200100021020010002102000000310300100011010000002102000000210100100021010000002102001000210200000021010010002101000000210200000021010010004102001000210100100040000000002101000000210100000040000010002000001001Q00000100080000010004000001000l000001000j001000002u000001000C'
+                            }else{
+                                value = value
+                            }
+                            res = key + '=' + value
+                        }else if(key == 'c'){
+                            res = key + '=' + value
+                        }else if(key == 'w'){
+                            res = key + '=' + value
+                        }else if(key == 'appId'){
+                            res = key + '=' + value
+                        }else if(key == 'scene'){
+                            res = key + '=' + value
+                        }else if(key == 'product'){
+                            res = key + '=' + value
+                        }else if(key == 'scene'){
+                            res = key + '=' + value
+                        }else if(key == 'e'){
+                            res = key + '=' + value
+                        }else if(key == 's'){
+                            res = key + '=' + value
+                        }else if(key == 'o'){
+                            res = key + '=' + value
+                        }else if(key == 'o1'){
+                            value = '0'
+                            res = key + '=' + value
+                        }else if(key == 'u'){
+                            res = key + '=' + value
+                        }else if(key == 'lang'){
+                            res = key + '=' + value
+                        }else if(key == 'callback'){
+                            jsonText = value 
+                            res = key + '=' + value
+                        }
+                        return res
+                    })
+                    urlThirdEnd = urlThird.join('&')
+                    let nextUrl = `${urlFirst[0]}?${urlThirdEnd}`
+                    log(chalk.yellow('nextUrl log', nextUrl))
+                    // request.continue({url:nextUrl,headers:nextHeaders})
+                    request.continue()
+                    
+                    // if(shtmlNum > 1){
+                    //     let bodyTxt =`${jsonText}({"message":"success","nextVerify":"NULL_VERIFY","success":"1","validate":"97136291569a4a2b8ca450537401df35"})`
+                    //     request.respond({
+                    //         status: 200,
+                    //         body:bodyTxt
+                    //     });
+                    // }else{
+                    //     request.continue()
+                    // }
+                    
+                    
+                }else{
+                    request.continue()
+                    // log(chalk.yellow('request log', request.url()))
+                }
+            }
+        });
+        
+           
+        
+        firstPage.on('console', msg => console.log('PAGE log', msg.text()))
+        
+        firstPage.on('response',(response) => {
+                let url = response.url()
+                if (url.includes('image')) {
+                }else if(url.includes('s.html')){
+                    response.text().then((body)=>{
+                        log(chalk.red('response url', url))
+                        log(chalk.red('response log', body))
+                    })
+
+                }else { 
+                }
+            }
+           )
+        await firstPage.mouse.move(300,310,{steps:30})
         await firstPage.goto(url,{waitUntil: 'load', timeout: 60000})
         log(chalk.yellow('京东页面初次加载完毕'))
+        await firstPage.evaluate(() => {
+            window.navigator.webdriver = false
+        });
         await firstPage.content();
         
-        // await page.evaluate(() => {
-
-        //     localStorage.setItem('_isGotoIndexFlag', '10');
-        //     let user = '{"appAgree":0,"calendar":0,"cpActivity":0,"cpcAgree":0,"cpsAgree":1,"isCeleShop":0,"isContent":0,"isOperate":0,"isGK":0,"isMotherPower":0,"isChannel":0,"qualificationStatus":0,"register":1,"nickName":"等月的树","haveMultipleAccounts":false,"yunBigImageUrl":""}'
-        //     localStorage.setItem('UNION_ROLES', user);
-        //     localStorage.setItem('register', 1);
-            
-        // });
         // loginJingDong(page)
         // await loginJingDongFrame(page)
         await loginJingDongLianMeng(firstPage)
@@ -79,7 +232,7 @@ const searchJingDongFn = async (ctx, next) => {
         if(!browser){
             await loginJingDongFn()
         }
-        debugger
+         debugger
         if(isLogin){
             goodsList = await searchGoods(browser,query)
         }
@@ -179,8 +332,7 @@ const loginJingDong = async (page) => {
         // console.log('boundingBoxEnd end', boundingBoxEnd )
         // console.log('keyboundingBox end', keyboundingBoxEnd )
         let wucha = end - boundingBoxEnd.x - boundingBox.width * 0.5
-        console.log('wucha end', wucha )
-        
+        log(chalk.red('wucha end', wucha))
 
         await page.waitForTimeout(500)
         await page.mouse.up();
@@ -204,36 +356,18 @@ const loginJingDongLianMeng = async (page) =>{
     }
     const frameHandle = await page.$("iframe[id='indexIframe']");
     const frame = await frameHandle.contentFrame();
+    
     await loginJingDongFrame(frame,page)
 }
 
 const loginJingDongFrame = async (frame,page) =>{
-    let name = '17319075327'
-    // let name = '17319075329'
+    // let name = '17319075327'
+    let name = '17319075339'
     let pwd = 'wef1991926'
     await frame.type('.item-ifo >input', name)
     await frame.type('#nloginpwd', pwd)
     await frame.waitForTimeout(1000)
     let loginBtn = await frame.$('#paipaiLoginSubmit')
-    // await frame.$eval('#useSlideAuthCode', el => el.value = 1)
-    // await frame.evaluate(() => {
-    //     // let useSlideAuthCode = document.getElementById('#useSlideAuthCode')
-    //     // useSlideAuthCode.value = '1'
-    //     // this.useSlideAuthCode = false
-    //     window.useSlideAuthCode = true
-    //     let time = new Date().valueOf()
-
-    //     localStorage.setItem('_isGotoIndexFlag', '7');
-    //     // let user = '{"appAgree":0,"calendar":0,"cpActivity":0,"cpcAgree":0,"cpsAgree":1,"isCeleShop":0,"isContent":0,"isOperate":0,"isGK":0,"isMotherPower":0,"isChannel":0,"qualificationStatus":0,"register":1,"nickName":"等月的树","haveMultipleAccounts":false,"yunBigImageUrl":""}'
-    //     let user = '{"appAgree":0,"calendar":0,"cpActivity":0,"cpcAgree":0,"cpsAgree":1,"isCeleShop":0,"isContent":0,"isOperate":0,"isGK":0,"isMotherPower":0,"isChannel":0,"qualificationStatus":0,"register":1,"nickName":"等月的树","haveMultipleAccounts":false,"yunBigImageUrl":""}'
-    //     localStorage.setItem('UNION_ROLES', user);
-    //     localStorage.setItem('register', 1);
-    //     localStorage.setItem('cfvalmdjrr', '7164d3a376a0f99e67731a75dd068ed7');
-    //     localStorage.setItem('timecfjrr', time);
-    //     localStorage.setItem('webglvmdjrr', 'de47b81396f4bb894de86880200cc3f3');
-    //     localStorage.setItem('3AB9D23F7A4B3C9B', 'HDVTYF7P7BRYZKRDEQG7VOTGFZO2HXWG7GCSROQ57GFWOS4TD2TZPUKK6DGXDI6N4WT3LRRZR3TSK6XWTE2YQ5BNKQ');
-    //     localStorage.setItem('timejrrwg', time);
-    // });
     if(loginBtn){
         loginBtn.click()
         await frame.waitForTimeout(2000)
@@ -253,6 +387,7 @@ async function validateLogin(page, parent){
     try{
         while(!validateFlag){
             console.log('while start')
+            // debugger
             let next = await page.$(".JDJRV-bigimg >img")
             if(!next){
                 return
@@ -305,6 +440,8 @@ async function validateLogin(page, parent){
                 // console.log('keyboundingBox end', keyboundingBoxEnd )
                 let wucha = end - boundingBoxEnd.x - boundingBox.width * 0.5
                 console.log('wucha end', wucha )
+                debugger
+
                 
     
                 await mouseParent.waitForTimeout(500)
@@ -524,7 +661,9 @@ async function searchGoods(browser, query){
 const searchGooodsJDFn = async (ctx, next) => {
     let query = ctx.request.query
     log(chalk.yellow('/taxiapi/searchGooodsJDFn start'))
-    let url = `http://192.168.0.107:3001/taxiapi/searchjingdong`
+    // let url = `http://192.168.0.107:3001/taxiapi/searchjingdong`
+    let url = `http://5403917lb3.51vip.biz:12931/taxiapi/searchjingdong`
+    
     
     let response = await axios({
         method: "GET",
