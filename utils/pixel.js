@@ -7,6 +7,7 @@ async function handleImg(path){
     let minY = 0
     let maxX = 0
     let maxY = 0
+    console.log('pixel path', path)
     try{
        let res = await getPixelPromise(path)
        const pixels = res
