@@ -17,6 +17,5 @@ app.use(bodyParser({
     encode: "utf-8"
   }));
 app.use(controller());
-
 app.listen(3001);
 console.log('app started at port 3001...');

@@ -1,143 +1,182 @@
 const axios = require('axios');
+const requestModule = require("request");
+const cheerio = require("cheerio");
 const model = require('../model');
 const chalk = require('chalk')
 const puppeteer = require('puppeteer')
 const {handleImgToPostition} = require('../utils/pixel');
+const {rightSpaceLocalList} = require('../constants/loginImg');
+const fs = require('fs')
 const { max } = require('lodash');
 const log = console.log
 let page = null
 let browser = null
 let isLogin = false
 let shtmlNum = 0
+let whileFlag = false
+let params = {
+    validateID:'',
+    appId: '',
+    // $("#slideAppId").val() || "1604ebb2287",
+    scene: "login",
+    product: "bind-suspend",
+    // e: JDJRValidate.getEid(),
+
+}
+//e
+// function () {
+//     var a = "";
+//     try {
+//       a = getJdEid().eid;
+//     } catch (b) {}
+//     try {
+//       if (a == "") {
+//         getJdEid(function (d, e, c) {
+//           a = d;
+//         });
+//       }
+//     } catch (b) {}
+//     return a;
+//   }
 const loginJingDongFn = async (ctx, next) => {
     log(chalk.yellow('/taxiapi/loginJingDong start'))
     if(!browser){
         browser = await puppeteer.launch({
             headless: false,
             // headless: true,
-            // devtools:true,
+            devtools:true,
             // defaultViewport:{ width: 1800, height: 800 },
-            defaultViewport:null,
+            // defaultViewport:null,
             // args: ['--no-sandbox', '--disable-setuid-sandbox','--start-maximized','--incognito',]
             // args: ['--no-sandbox','--incognito',]
             args: ['--no-sandbox']
         })
     }
-    // let url = 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F'
     let url = 'https://union.jd.com/index'
-    // let url = 'https://www.mengshikejiwang.top/#/pages/index/index'
+    let loginUrl = 'https://passport.jd.com/common/loginPage?from=media&ReturnUrl=https%3A%2F%2Funion.jd.com%2Foverview'
     try {
         const firstPage = await browser.newPage()
         await firstPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36')
         await firstPage.evaluateOnNewDocument(() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) })
-        // await firstPage.setRequestInterception(true);
-        // firstPage.on('request', (request) => {
+        await firstPage.setRequestInterception(true);
+        // firstPage.on('request', async (request) => {
         //     let url = request.url()
-        //     let path = url.replace('https://iv.jd.com','')
-        //     let cookie = 'RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vwfo&sl=0&tt=0"; __jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248'
-        //     let manulHeadersFirst = {
-        //             ':authority':'iv.jd.com',
-        //             ':method':'GET',
-        //             ':path':path,
-        //             ':scheme':'https',
-        //             "Accept":'*/*',
-        //             "Accept-Encoding":'gzip, deflate, br',
-        //             'Accept-Language':'zh-CN,zh;q=0.9',
-        //             'Connection':'keep-alive',
-        //             'cookie':cookie,
-        //             'Host':'iv.jd.com',
-        //             'Referer':'https://passport.jd.com/',
-        //             'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
-        //             'sec-ch-ua-mobile':'?0',
-        //             'sec-ch-ua-platform':'"Windows"',
-        //             'Sec-Fetch-Dest':'script',
-        //             'Sec-Fetch-Mode':'no-cors',
-        //             'Sec-Fetch-Site':'same-site',
-        //             }
-        //     let cookieSecond = '__jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248; 3AB9D23F7A4B3C9B=SVJPZUO4OFVV757GORUJHZRMNZ7DZCUJ6CMQ4TMBAYHH6D46DOCHBTTHNSZZU53BK7LGX7RYU4JKSN6627YORSNZLE; JSESSIONID=0EF4DD07ECA4FC6A1B2F831252C15A70.s1; RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vvzr&sl=1&tt=22r&ld=2v1"'
-        //     let manulHeadersSecond = {
-        //             ':authority':'iv.jd.com',
-        //             ':method':'GET',
-        //             ':path':path,
-        //             "Accept":'*/*',
-        //             "Accept-Encoding":'gzip, deflate, br',
-        //             'Accept-Language':'zh-CN,zh;q=0.9',
-        //             'Connection':'keep-alive',
-        //             'Cookie':cookieSecond,
-        //             'Host':'iv.jd.com',
-        //             'Referer':'https://passport.jd.com/',
-        //             'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
-        //             'sec-ch-ua-mobile':'?0',
-        //             'sec-ch-ua-platform':'"Windows"',
-        //             'Sec-Fetch-Dest':'script',
-        //             'Sec-Fetch-Mode':'no-cors',
-        //             'Sec-Fetch-Site':'same-site',
-        //     }
-        //     let nextHeaders = Object.assign({}, request.headers(),manulHeadersFirst )
+        //     // let path = url.replace('https://iv.jd.com','')
+        //     // let cookie = 'RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vwfo&sl=0&tt=0"; __jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248'
+        //     // let manulHeadersFirst = {
+        //     //         ':authority':'iv.jd.com',
+        //     //         ':method':'GET',
+        //     //         ':path':path,
+        //     //         ':scheme':'https',
+        //     //         "Accept":'*/*',
+        //     //         "Accept-Encoding":'gzip, deflate, br',
+        //     //         'Accept-Language':'zh-CN,zh;q=0.9',
+        //     //         'Connection':'keep-alive',
+        //     //         'cookie':cookie,
+        //     //         'Host':'iv.jd.com',
+        //     //         'Referer':'https://passport.jd.com/',
+        //     //         'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+        //     //         'sec-ch-ua-mobile':'?0',
+        //     //         'sec-ch-ua-platform':'"Windows"',
+        //     //         'Sec-Fetch-Dest':'script',
+        //     //         'Sec-Fetch-Mode':'no-cors',
+        //     //         'Sec-Fetch-Site':'same-site',
+        //     //         }
+        //     // let cookieSecond = '__jdv=209449046|direct|-|none|-|1654250247995; __jdu=1654250247995953887068; __jda=95931165.1654250247995953887068.1654250248.1654250248.1654250248.1; __jdc=95931165; __jdb=95931165.3.1654250247995953887068|1.1654250248; 3AB9D23F7A4B3C9B=SVJPZUO4OFVV757GORUJHZRMNZ7DZCUJ6CMQ4TMBAYHH6D46DOCHBTTHNSZZU53BK7LGX7RYU4JKSN6627YORSNZLE; JSESSIONID=0EF4DD07ECA4FC6A1B2F831252C15A70.s1; RT="z=1&dm=jd.com&si=aa7qdse4mcb&ss=l3y9vvzr&sl=1&tt=22r&ld=2v1"'
+        //     // let manulHeadersSecond = {
+        //     //         ':authority':'iv.jd.com',
+        //     //         ':method':'GET',
+        //     //         ':path':path,
+        //     //         "Accept":'*/*',
+        //     //         "Accept-Encoding":'gzip, deflate, br',
+        //     //         'Accept-Language':'zh-CN,zh;q=0.9',
+        //     //         'Connection':'keep-alive',
+        //     //         'Cookie':cookieSecond,
+        //     //         'Host':'iv.jd.com',
+        //     //         'Referer':'https://passport.jd.com/',
+        //     //         'sec-ch-ua':'" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+        //     //         'sec-ch-ua-mobile':'?0',
+        //     //         'sec-ch-ua-platform':'"Windows"',
+        //     //         'Sec-Fetch-Dest':'script',
+        //     //         'Sec-Fetch-Mode':'no-cors',
+        //     //         'Sec-Fetch-Site':'same-site',
+        //     // }
+        //     // let nextHeaders = Object.assign({}, request.headers(),manulHeadersFirst )
         //     if (request.resourceType() === 'image') {
         //         request.continue();
         //     } else {
         //         if(url.includes('s.html')){
-        //             shtmlNum++
+        //             // shtmlNum++
         //             let headers = JSON.stringify(request.headers())
-        //             if(shtmlNum > 0){
-        //                 nextHeaders = Object.assign({}, request.headers(),manulHeadersSecond )
-        //             }
-        //             log(chalk.yellow('request header log', headers))
-        //             log(chalk.yellow('request log', request.url()))
-        //             let urlFirst = url.split('?')
-        //             let urlSecond = urlFirst[1] && urlFirst[1].split('&')
-        //             let urlThirdEnd = []
-        //             let jsonText = ''
-        //             let urlThird = Array.isArray(urlSecond) && urlSecond.map( v =>{
-        //                 let res = v
-        //                 let urlFour = v && v.split('=')
-        //                 let key = ''
-        //                 let value = ''
-        //                 if(urlFour.length > 1){
-        //                     key = urlFour[0]
-        //                     value = urlFour[1]
-        //                 }
-        //                 if(key == 'd'){
-        //                     if(shtmlNum == 1){
-        //                         value = '000002Ao4EAGf~101000000310100100011030010003102001000110200200031030010002101000000110300200031010010001103001000310100000011020000003102003000110200100031010010002102001000110200100031020010001102000000300000100011030020003101000000110200100031020010002102002000110100100031020000001102002000310300200011020000003000001000110200000031020020001102001000210200200031020010001102001000310200100011010010003102001000110300100031020010001101001000210100200031030000001101000000310100100011010010003101001000110100100021020000003101001000410100100011010010005101000000400000100010000010009101001001k0000010001000001000k0000010008000001000u0000010006000001000e002001000a00100000020000010007000001000100000100060000010004000000000200100200060000010006001001000800100000080010000016000000000K000000000t00010100mP000102000600010100040001010002101000000200010100020001010004101101000200010100040001020002101101000400010100020001010004000102000210100000020001010002000102000400010100020001010002000102000400010100021011010004000101000200010100020001020002101000000200010100041011010002000101000200010100020001010006000101000200010100040001010004000101000c000101000200010100040001010008000101000k1010000004000101000a000101000e000101001I000101001Q000101000m001000003G000101000200210100040010000002000000000200300000020011010002003102000200200000020031010002002000000200200000020041010002002101000200410100020041020002005101000200510100020051010002007000000200410200020061020002006101000200500000020071010002007102000210310n00oq109002000210e002000410a003000010b001000210a00200021080030002108001000210900200021060010002107002000210600000021050030002105001000210400000021060010002102001000210400100021030010002103000000210200100021030010002103000000210200100021020010002102000000310300100011010000002102000000210100100021010000002102001000210200000021010010002101000000210200000021010010004102001000210100100040000000002101000000210100000040000010002000001001Q00000100080000010004000001000l000001000j001000002u000001000C'
-        //                     }else{
-        //                         value = value
-        //                     }
-        //                     res = key + '=' + value
-        //                 }else if(key == 'c'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'w'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'appId'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'scene'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'product'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'scene'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'e'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 's'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'o'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'o1'){
-        //                     value = '0'
-        //                     res = key + '=' + value
-        //                 }else if(key == 'u'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'lang'){
-        //                     res = key + '=' + value
-        //                 }else if(key == 'callback'){
-        //                     jsonText = value 
-        //                     res = key + '=' + value
-        //                 }
-        //                 return res
-        //             })
-        //             urlThirdEnd = urlThird.join('&')
-        //             let nextUrl = `${urlFirst[0]}?${urlThirdEnd}`
+        //             // if(shtmlNum > 0){
+        //             //     nextHeaders = Object.assign({}, request.headers(),manulHeadersSecond )
+        //             // }
+        //             // log(chalk.yellow('request header log', headers))
+        //             // log(chalk.yellow('request log', request.url()))
+
+        //             // let now = new Date().getTime() + ''
+        //             // let path = 'headRequest'+ '-' + now + '.json'
+        //             // fs.writeFile(path, headers,function(err,data) {
+        //             //     if (err) {
+        //             //         throw err;
+        //             //     }else{
+        //             //         // console.log('write', data)
+        //             //     }
+        //             // });
+
+        //             // let urlFirst = url.split('?')
+        //             // let urlSecond = urlFirst[1] && urlFirst[1].split('&')
+        //             // let urlThirdEnd = []
+        //             // let jsonText = ''
+        //             // let urlThird = Array.isArray(urlSecond) && urlSecond.map( v =>{
+        //             //     let res = v
+        //             //     let urlFour = v && v.split('=')
+        //             //     let key = ''
+        //             //     let value = ''
+        //             //     if(urlFour.length > 1){
+        //             //         key = urlFour[0]
+        //             //         value = urlFour[1]
+        //             //     }
+        //             //     if(key == 'd'){
+        //             //         if(shtmlNum == 1){
+        //             //             value = '000002Ao4EAGf~101000000310100100011030010003102001000110200200031030010002101000000110300200031010010001103001000310100000011020000003102003000110200100031010010002102001000110200100031020010001102000000300000100011030020003101000000110200100031020010002102002000110100100031020000001102002000310300200011020000003000001000110200000031020020001102001000210200200031020010001102001000310200100011010010003102001000110300100031020010001101001000210100200031030000001101000000310100100011010010003101001000110100100021020000003101001000410100100011010010005101000000400000100010000010009101001001k0000010001000001000k0000010008000001000u0000010006000001000e002001000a00100000020000010007000001000100000100060000010004000000000200100200060000010006001001000800100000080010000016000000000K000000000t00010100mP000102000600010100040001010002101000000200010100020001010004101101000200010100040001020002101101000400010100020001010004000102000210100000020001010002000102000400010100020001010002000102000400010100021011010004000101000200010100020001020002101000000200010100041011010002000101000200010100020001010006000101000200010100040001010004000101000c000101000200010100040001010008000101000k1010000004000101000a000101000e000101001I000101001Q000101000m001000003G000101000200210100040010000002000000000200300000020011010002003102000200200000020031010002002000000200200000020041010002002101000200410100020041020002005101000200510100020051010002007000000200410200020061020002006101000200500000020071010002007102000210310n00oq109002000210e002000410a003000010b001000210a00200021080030002108001000210900200021060010002107002000210600000021050030002105001000210400000021060010002102001000210400100021030010002103000000210200100021030010002103000000210200100021020010002102000000310300100011010000002102000000210100100021010000002102001000210200000021010010002101000000210200000021010010004102001000210100100040000000002101000000210100000040000010002000001001Q00000100080000010004000001000l000001000j001000002u000001000C'
+        //             //         }else{
+        //             //             value = value
+        //             //         }
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'c'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'w'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'appId'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'scene'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'product'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'scene'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'e'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 's'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'o'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'o1'){
+        //             //         value = '0'
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'u'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'lang'){
+        //             //         res = key + '=' + value
+        //             //     }else if(key == 'callback'){
+        //             //         jsonText = value 
+        //             //         res = key + '=' + value
+        //             //     }
+        //             //     return res
+        //             // })
+        //             // urlThirdEnd = urlThird.join('&')
+        //             // let nextUrl = `${urlFirst[0]}?${urlThirdEnd}`
         //             // log(chalk.yellow('nextUrl log', nextUrl))
         //             // request.continue({url:nextUrl,headers:nextHeaders})
         //             request.continue()
@@ -151,23 +190,71 @@ const loginJingDongFn = async (ctx, next) => {
         //             //     request.continue()
         //             // }
                     
+        //         }else if(url.includes('passport.jd.com/common/loginPage')){
+        //             // let reqResponse =  await request.response()
+
+        //             // log(chalk.red('request  passport.jd.com log', reqResponse))
+        //             // request.continue() 
+
+        //             // let tempResponse = await axios.get(url)
+        //             // const { status, statusText, headers, config, request, data } = tempResponse;
+        //             // log(chalk.red('tempResponse  ', tempResponse))
+                    
+        //             // request.respond(tempResponse);
+
+        //             // await request.respond({
+        //             //     ...tempResponse,
+        //             // });
+            
+                    
+            
+        //             // Send response
+        //             // request.respond({
+        //             //     ok: statusMessage === "OK",
+        //             //     status: statusCode,
+        //             //     contentType,
+        //             //     body: $.html(),
+        //             // });
+        //             request.continue() 
+                    
+                          
+                       
+                    
+
         //         }else{
-        //             request.continue()
-        //             // log(chalk.yellow('request log', request.url()))
+        //             request.continue() 
         //         }
+                
         //     }
         // });
-        firstPage.on('console', msg => console.log('PAGE log', msg.text()))
-        // firstPage.on('response',(response) => {
+        // firstPage.on('console', msg => console.log('PAGE log', msg.text()))
+        // firstPage.on('response',async (response) => {
         //         let url = response.url()
         //         if (url.includes('image')) {
         //         }else if(url.includes('s.html')){
-        //             response.text().then((body)=>{
-        //                 log(chalk.red('response url', url))
-        //                 log(chalk.red('response log', body))
-        //             })
+        //             // response.text().then((body)=>{
+        //             //     log(chalk.red('response url', url))
+        //             //     log(chalk.red('response log', body))
+        //             // })
 
-        //         }else { 
+        //         }else if(url.includes('passport.jd.com/common/loginPage')){
+        //             let val =  await response.text()
+        //             log(chalk.red('response passport.jd.com/common/loginPage log', val))
+        //             log(chalk.red('response ', response))
+        //             for(let k in response){
+        //                 log(chalk.red('response ',k, response[k]))
+
+        //             }
+
+
+                     
+        //         }else if(url.includes('g.html')){
+        //             let json =  await response.JSON()
+        //             let text =  await response.text()
+        //             log(chalk.red('g.html response json', json))
+        //             log(chalk.red('g.html response ', text))
+        //             let  validateID = val.challenge
+        //             params.validateID = validateID
         //         }
         //     }
         //    )
@@ -176,21 +263,20 @@ const loginJingDongFn = async (ctx, next) => {
         log(chalk.yellow('京东页面初次加载完毕'))
         await firstPage.evaluate(() => {
             window.navigator.webdriver = false
+
         });
         await firstPage.content();
         // loginJingDong(page)
-        // await loginJingDongFrame(page)
+        // await loginJingDongFrame(firstPage) 
         await loginJingDongLianMeng(firstPage)
 
         //登录
     } catch (error) {
-        // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
         // browser = null
         // await browser.close()
     } finally {
-        // 最后要退出进程
         // await browser.close()
         log(chalk.green('服务正常结束'))
         if(ctx){
@@ -214,19 +300,16 @@ const searchJingDongFn = async (ctx, next) => {
         if(!browser){
             await loginJingDongFn()
         }
-         debugger
         if(isLogin){
             goodsList = await searchGoods(browser,query)
         }
     } catch (error) {
-        // 出现任何错误，打印错误消息并且关闭浏览器
         console.log(error)
         log(chalk.red('服务意外终止'))
         // page = null
         // browser = null
         // await browser.close()
     } finally {
-        // 最后要退出进程
         // await browser.close()
         log(chalk.green('服务正常结束'))
         let dataRes = {
@@ -286,7 +369,6 @@ const loginJingDong = async (page) => {
     const slideBtn = await page.$('.JDJRV-slide-btn')
     let wrongSpace = 4.4
     while(slideBtn){
-        // debugger
         const boundingBox = await slideBtn.boundingBox() || {}
         let slideLeft = boundingBox.x + boundingBox.width * 0.5
         let slideTop = boundingBox.y + boundingBox.height * 0.5
@@ -346,9 +428,19 @@ const loginJingDongFrame = async (frame,page) =>{
     // let name = '17319075327'
     // let pwd = 'wef1991926'
 
-    // let name = '15321830653'
-    let name = '等花开926'
-    let pwd = 'Wef1991926'
+    // let name = '等花开926'
+    // let pwd = 'Wef1991926'
+    // let test = ''
+    // await frame.evaluate(() => {
+    //     window.navigator.webdriver = false
+    //     test = 'asdf'
+
+    // });
+    // log(chalk.red('test', test))
+    
+
+    let name = '等花开9263'
+    let pwd = 'Wef19919263'
     await frame.type('.item-ifo >input', name)
     await frame.type('#nloginpwd', pwd)
     await frame.waitForTimeout(1000)
@@ -370,16 +462,16 @@ async function validateLogin(page, parent){
     log(chalk.yellow('validateLogin start'))
     let validateFlag = false 
     try{
-        while(!validateFlag){
+        while(!validateFlag && !whileFlag){
             console.log('while start')
-            // debugger
             let next = await page.$(".JDJRV-bigimg >img")
+            await page.waitForTimeout(1000)
             if(!next){
                 return
             }
-            // await page.waitForSelector(".JDJRV-bigimg >img")
-            const bigImg = await page.$eval('.JDJRV-bigimg >img', el => el.src);
-            const smallImg = await page.$eval('.JDJRV-smallimg >img', el => el.src);
+            let bigImg = await page.$eval('.JDJRV-bigimg >img', el => el.src);
+            let smallImg = await page.$eval('.JDJRV-smallimg >img', el => el.src);
+
             let locationObj = {}
             if(bigImg && smallImg){
                 if(bigImg.includes('data:') && bigImg.includes('data:')){
@@ -391,10 +483,24 @@ async function validateLogin(page, parent){
             const keyClientWidth = await page.$eval('.JDJRV-smallimg >img', el => el.clientWidth);
             const { keyWidth, minX} = locationObj
             let rightSpace = ( (+minX) *(keyClientWidth/keyWidth)).toFixed(2)
-            await page.waitForTimeout(1000)
+            // rightSpace = Math.ceil(rightSpace).toFixed(2)
+            rightSpace = Math.floor(rightSpace).toFixed(2)
+            // await page.waitForTimeout(2000)
             const slideBtn = await page.$('.JDJRV-slide-btn')
+            const bigImgNode = await page.$('.JDJRV-bigimg >img')
             if(slideBtn){
-                const boundingBox = await slideBtn.boundingBox() || {}
+                let boundingBox = await slideBtn.boundingBox() || {}
+                log(chalk.yellow('boundingBox start'),boundingBox)
+                log(chalk.yellow('rightSpace'),rightSpace)
+                let bigImgNode = await page.$('.JDJRV-bigimg >img')
+                let bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                let smallImgNode = await page.$('.JDJRV-smallimg >img')
+                let smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
+                let initX = boundingBox.x 
+                let initY = boundingBox.y 
                 let slideLeft = boundingBox.x + boundingBox.width * 0.5
                 let slideTop = boundingBox.y + boundingBox.height * 0.5
                 let spaceFirst = +rightSpace - 60  
@@ -402,31 +508,188 @@ async function validateLogin(page, parent){
                 let spaceThird = +rightSpace - 10  
                 let spaceEnd = +rightSpace
                 let end = slideLeft + spaceEnd
-                const smallImgNode = await page.$('.JDJRV-smallimg >img')
-                const keyboundingBox = await smallImgNode.boundingBox() || {}
-                // console.log('keyboundingBox init', keyboundingBox )
-                // console.log('drag init', minX )
-                // console.log('boundingBox', boundingBox )
-                // console.log('rightSpace', rightSpace )
-                // console.log('end', end )
                 let mouseParent = page
                 if(parent){
                     mouseParent = parent
                 }
+                debugger
+                let boundingBoxEnd1 = ''
                 await mouseParent.mouse.click(slideLeft,slideTop,{delay:1000})
+                // initX = boundingBox.x 
+                boundingBox = await slideBtn.boundingBox() || {}
+                let moveX = boundingBox.x - initX
+                log('moveX', moveX)
+
+                slideLeft =  boundingBox.x + boundingBox.width * 0.5
+                
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log('boundingBoxEnd1 click', chalk.yellow(boundingBoxEnd1.x, initX, slideLeft ))
+                 bigImgNode = await page.$('.JDJRV-bigimg >img')
+                 bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
                 await mouseParent.mouse.down(slideLeft,slideTop)
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log('boundingBoxEnd1 down', chalk.yellow(boundingBoxEnd1.x, initX , slideLeft))
+                bigImgNode = await page.$('.JDJRV-bigimg >img')
+                 bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
+                slideLeft += -moveX
                 await mouseParent.mouse.move(slideLeft + spaceFirst,slideTop,{steps:30})
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log(' move First boundingBoxEnd1.x, initX', chalk.yellow(boundingBoxEnd1.x, initX ))
+                log('boundingBoxEnd2', chalk.yellow(boundingBoxEnd1.x - slideLeft - spaceFirst))
+                log('boundingBoxEnd2', chalk.yellow(boundingBoxEnd1.x - initX -  spaceFirst))
+                bigImgNode = await page.$('.JDJRV-bigimg >img')
+                bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
                 await mouseParent.mouse.move(slideLeft + spaceSecond,slideTop,{steps:10})
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log(' move spaceSecond  boundingBoxEnd1.x, initX', chalk.yellow(boundingBoxEnd1.x, initX ))
+                log('boundingBoxEnd3', chalk.yellow(boundingBoxEnd1.x - slideLeft - spaceSecond ))
+                log('boundingBoxEnd3', chalk.yellow(boundingBoxEnd1.x - initX - spaceSecond ))
+                bigImgNode = await page.$('.JDJRV-bigimg >img')
+                bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
+
                 await mouseParent.mouse.move(slideLeft + spaceThird,slideTop,{steps:20})
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log(' move spaceThird boundingBoxEnd1.x, initX', chalk.yellow(boundingBoxEnd1.x, initX ))
+                log('boundingBoxEnd4', chalk.yellow(boundingBoxEnd1.x - slideLeft - spaceThird ))
+                log('boundingBoxEnd4', chalk.yellow(boundingBoxEnd1.x - initX - spaceThird ))
+                bigImgNode = await page.$('.JDJRV-bigimg >img')
+                bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
+
                 await mouseParent.mouse.move(end,slideTop,{steps:20})
+                boundingBoxEnd1 = await slideBtn.boundingBox() || {}
+                log(' move end boundingBoxEnd1.x, initX', chalk.yellow(boundingBoxEnd1.x, initX ))
+                log('boundingBoxEnd5', chalk.yellow(boundingBoxEnd1.x - slideLeft - spaceEnd ))
+                log('boundingBoxEnd5', chalk.yellow(boundingBoxEnd1.x - initX - spaceEnd ))
+                bigImgNode = await page.$('.JDJRV-bigimg >img')
+                bigImgNodeBox = await bigImgNode.boundingBox() || {}
+                log(chalk.yellow('bigImgNodeBox'),bigImgNodeBox)
+                smallImgNode = await page.$('.JDJRV-smallimg >img')
+                smallImgNodeBox = await smallImgNode.boundingBox() || {}
+                log(chalk.yellow('smallImgNodeBox'),smallImgNodeBox)
+
+
+                // let i = 0
+                // let rightSpaceList = [[1,2]]
+                // while(i < 600){
+                //     console.log(i)
+                //     const boundingBoxEnd = await slideBtn.boundingBox() || {}
+                //     console.log('btn location', boundingBoxEnd.x, boundingBoxEnd.y )
+                //     let minusVal = boundingBoxEnd.x - boundingBox.x
+                //     if(minusVal > 0){
+                //         rightSpaceList.push([boundingBoxEnd.x - boundingBox.x, boundingBoxEnd.y - boundingBox.y])
+                //     }
+                //     console.log('startstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstartstart'  )
+
+                //     let minusNextStart= rightSpaceList.length -100
+                //     let minusNextEnd= rightSpaceList.length -1
+                //     console.log('minusNext', rightSpaceList.slice(minusNextStart,minusNextEnd) )
+                //     console.log('xLen', +minX, keyClientWidth, keyWidth )
+                //     console.log('myVal', ( (+minX) *(keyClientWidth/keyWidth)).toFixed(2) )
+                //     console.log('rightSpace', rightSpace)
+
+                //     i++
+                // }
+                // let now = new Date().getTime() + ''
+                // let fileName = rightSpaceList[(rightSpaceList.length -1)][0] + '-' + now+ '.png'
+                // let len = smallImg.length - 150
+                // let textRes = {
+                //     imgStart:smallImg.substring(0,150),
+                //     imgMid:smallImg.substring(300,400),
+                //     imgEnd:smallImg.substring(len),
+                //     rightSpace:rightSpaceList[(rightSpaceList.length -1)][0],
+                //     imgName:fileName
+                // }
+                // let repeat = []
+                // Array.isArray(rightSpaceLocalList) && rightSpaceLocalList.map( (v,i) =>{
+                //     if(v.imgStart === textRes.imgStart && v.imgMid === textRes.imgMid && v.imgEnd === textRes.imgEnd && v.rightSpace === textRes.rightSpace){
+                //         repeat.push(v)
+                //         log(chalk.red('重复重复重复重复重复重复重复重复重复重复重复重复重复',repeat))
+                //     }
+
+                // })
+                // path = 'imgTxt.txt' 
+                // let content = JSON.stringify(textRes)+ ',' + '\r\n'
+                // try{
+                //     fs.readFile(path, function(err,readData) {
+                //         if (err) {
+                //             throw err;
+                //         }else{
+                //             writeData = readData + content
+                //             fs.writeFile(path, writeData,function(err,data) {
+                //                 if (err) {
+                //                     throw err;
+                //                 }else{
+                //                     // console.log('write', data)
+                //                 }
+                //             });
+                //         }
+                //     })
+                    
+                //     let imgPath = 'imgs/' + fileName
+                    
+                //     const bigImgData = bigImg.replace(/^data:image\/\w+;base64,/,"")
+                //     let imgData = Buffer.from(bigImgData, "base64")
+                //     fs.writeFile(imgPath, imgData,'binary',function(err,data) {
+                //         if (err) {
+                //             throw err;
+                //         }else{
+                //             // console.log('write', data)
+                //         }
+                //     });
+                    
+                //     let fileNameSmall = rightSpaceList[(rightSpaceList.length -1)][0] + '-'  + now  + '-' + 'small' + '.png'
+                //     let imgPathSmall = 'smallImgs/' + fileNameSmall
+                //     const smallImgData = smallImg.replace(/^data:image\/\w+;base64,/,"")
+                //     let imgSmallData = Buffer.from(smallImgData, "base64")
+                //     fs.writeFile(imgPathSmall, imgSmallData,'binary',function(err,data) {
+                //         if (err) {
+                //             throw err;
+                //         }else{
+                //             // console.log('write', data)
+                //         }
+                //     });
+                    
+                // }catch(e){
+                //     console.log(e)
+                // }
+
+
                 const boundingBoxEnd = await slideBtn.boundingBox() || {}
                 const smallImgNodeEnd = await page.$('.JDJRV-smallimg >img')
                 const keyboundingBoxEnd = await smallImgNodeEnd.boundingBox() || {}
-                // console.log('boundingBoxEnd end', boundingBoxEnd )
-                // console.log('keyboundingBox end', keyboundingBoxEnd )
+  
+
                 let wucha = end - boundingBoxEnd.x - boundingBox.width * 0.5
-                console.log('wucha end', wucha )
-                debugger
+                console.log('btn location', boundingBoxEnd.x )
+                log(chalk.yellow('wucha end' ),chalk.yellow(wucha))
+                console.log('rightSpace', rightSpace)
+                
+                
                 await mouseParent.waitForTimeout(500)
                 await mouseParent.mouse.up();
                 // let name = './test' +wucha + '.png'
@@ -439,7 +702,9 @@ async function validateLogin(page, parent){
                 //     console.log('tiaozhuan')
                 //     validateFlag = true
                 // }
-                
+
+                // validateFlag = true
+
                 let nextNodeInit = await page.$('.JDJRV-slide-bar-center')
                 if(nextNodeInit){
                     let centerContentNext = await page.evaluate(() => {
@@ -451,6 +716,8 @@ async function validateLogin(page, parent){
                     let centerContent = await page.$eval('.JDJRV-slide-bar-center', el => el.outerHTML) || '';
                     console.log('centerContentNext',centerContentNext)
                     console.log('centerContent',centerContent)
+                    debugger
+
                     if(centerContent && centerContent.includes('成功')){
                         validateFlag = true
                     }
@@ -627,7 +894,6 @@ async function searchGoods(browser, query){
             goodsList.push(res)
 
         }
-        debugger
         let res = await page.content()
         // console.log('page',res)
         
@@ -666,9 +932,48 @@ const searchGooodsJDFn = async (ctx, next) => {
 
 }
 
+async function testPixel(){
+    let i = rightSpaceLocalList.length -1
+    while(i){
+    // for(let i = 0, rightLen = rightSpaceLocalList.length; i < rightLen; i++){
+        // if(i == 4){
+            let { imgName, rightSpace } = rightSpaceLocalList[i]
+            let nameList = imgName.split('.png')
+            let name = nameList[0]
+            let smallPath = 'smallImgs/' + name + '-small' + '.png'
+            let bigPath = 'imgs/' + name + '.png'
+            log(chalk.yellow('rightSpace', rightSpace))
+            let res =  await handleImgToPostition(bigPath,smallPath)
+            const { keyWidth, minX} = res
+            let resSpace =  ( (+minX) *(39/keyWidth)).toFixed(2)
+            log(chalk.yellow('res', minX, keyWidth ))
+            let end = Math.floor(resSpace)
+            log(chalk.yellow('end', end -  rightSpace))
+            if(  Math.abs ( resSpace - rightSpace) <= 1){
+                log(chalk.yellow('success'))
+            }
+        debugger
+
+
+        // }
+        i--
+
+    }
+   
+    
+    
+    
+
+    
+
+
+
+
+}
 
 module.exports = {
     'GET /taxiapi/searchjingdong': searchJingDongFn,
     'GET /taxiapi/searchgoodsjd': searchGooodsJDFn,
     'GET /taxiapi/loginjingdong': loginJingDongFn,
+    'GET /taxiapi/test': testPixel,
 };

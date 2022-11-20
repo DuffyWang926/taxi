@@ -1,19 +1,17 @@
 let getPixelPromise = require('get-pixel-promise')
+const { add } = require('lodash')
 
-async function handleImg(path){
+async function handleImg(path, goalNums){
     let width = 0
     let height = 0
     let minX = 0
     let minY = 0
     let maxX = 0
     let maxY = 0
-    console.log('pixel path', path)
     try{
-       let res = await getPixelPromise(path)
-       const pixels = res
-       if(res.data){
+       let pixels = await getPixelPromise(path)
+       if(pixels.data){
             let { shape } = pixels
-            // console.log('shape', shape)
             let len = 0
             let lenj = 0
             let lenk = 0
@@ -27,127 +25,343 @@ async function handleImg(path){
             let result = []
             let pList = []
             let repleatObjList = []
-            
+            let repleatShallowList = []
             for(var i=0; i<len; ++i) {
                 for(var j=0; j<lenj; ++j) {
-                    for(var k=0; k<4; ++k) {
+                    for(var k=0; k<3; ++k) {
                         let pixel = pixels.get(i,j,k)
                         pList.push(pixel)
                     }
-                    
                     if( (pList[0] == 0) && (pList[1] == 0) && (pList[2] == 0)  ){
 
                     }else{
-                        let isPush = false
-                        // debugger
-                        for(let m = 0, lenm = repleatObjList.length; m < lenm; m ++){
-                            let { sum } = repleatObjList[m]
-                            let flag = false
-                            //比较色值，判断坐标是否连续
-                            let locationLimit = repleatObjList[m].locationLimit
-                            let listInit = repleatObjList[m].list
-                            let locationListInit = repleatObjList[m].locationList
-                            let location = [i,j]
-                            let locationLimitNext = {}
-                            let colorGap = 10
-                            let aFlag = Math.abs( listInit[0]-pList[0]) < colorGap 
-                            let bFlag = Math.abs( listInit[1]-pList[1]) < colorGap
-                            let cFlag = Math.abs( listInit[2]-pList[2]) < colorGap
-                            let colorFlag = aFlag && bFlag && cFlag
-                            let locationGap = 10
-                            if(colorFlag){
-                                let { 
-                                        minX,
-                                        maxX,
-                                        minY,
-                                        maxY
-                                    } = locationLimit
-                                if( minX === -1){
-                                    flag = true
-                                    locationLimitNext = {
+                        let shallowColorFlag = 90
+                        let aShallowFlag = pList[0] < shallowColorFlag
+                        let bShallowFlag = pList[1] < shallowColorFlag
+                        let cShallowFlag = pList[2] < shallowColorFlag
+                        let colorShallowFlag = aShallowFlag && bShallowFlag && cShallowFlag
+                        if(colorShallowFlag && goalNums){
+                                // debugger
+                            //浅颜色处理
+                            if( repleatShallowList.length == 0 ){
+                                let locationObject ={}
+                                let locationList = []
+                                locationList.push([i,j])
+                                locationObject[i] = {
+                                    sum:1,
+                                    start:j,
+                                    end:j,
+                                    locationList
+
+                                }
+                                let initShallow = {
+                                    list:pList,
+                                    colorList:[pList],
+                                    sum:1,
+                                    locationList:[[i,j]],
+                                    locationObject,
+                                    locationLimit:{
                                         minX:i,
                                         maxX:i,
                                         minY:j,
                                         maxY:j
                                     }
-
-                                }else{
-                                    let flagX = false
-                                    let flagY = false
-                                    if(i <= minX){
-                                        if((minX - i) < locationGap){
-                                            minX = i
-                                            flagX = true
-                                        }
-                                    }else if( i >= maxX){
-                                        if((i - maxX) < locationGap){
-                                            maxX = i
-                                            flagX = true
-                                        }
-                                    }else{
-                                        flagX = true
-                                    }
-                                    if(j <= minY){
-                                        if((minY - j) < locationGap){
-                                            minY = j
-                                            flagY = true
-                                        }
-                                    }else if( j >= maxY){
-                                        if((j - maxY) < locationGap){
-                                            maxY = j
-                                            flagY = true
-                                        }
-                                    }else{
-                                        flagY = true
-                                    }
-                                    if(flagX && flagY){
-                                        flag = true
-                                        locationLimitNext = {
+                                    
+                                }
+                                repleatShallowList.push(initShallow)
+                            }else{
+                                let isPush = false
+                                
+                                for(let m = 0, lenm = repleatShallowList.length; m < lenm; m ++){
+                                    let { sum, locationLimit, locationObject } = repleatShallowList[m]
+                                    let addflag = false
+                                    let locationLimitNext = {}
+                                    let locationGap = 10
+                                    let isDelete = false
+                                    //判断位置区域
+                                    let { 
                                             minX,
                                             maxX,
                                             minY,
                                             maxY
+                                        } = locationLimit
+                                    if( sum == 0){
+                                        addflag = true
+                                        locationLimitNext = {
+                                            minX:i,
+                                            maxX:i,
+                                            minY:j,
+                                            maxY:j
                                         }
 
-                                    }
+                                    }else{
+                                        let flagX = true
+                                        let flagY = true
+                                        if(i <= minX){
+                                            if((minX - i) < locationGap){
+                                                minX = i
+                                                flagX = true
+                                            }
+                                        }else if( i >= maxX){
+                                            if((i - maxX) < locationGap){
+                                                maxX = i
+                                                flagX = true
+                                            }
+                                        }
+                                        if(j <= minY){
+                                            if((minY - j) < locationGap){
+                                                minY = j
+                                                flagY = true
+                                            }
+                                        }else if( j >= maxY){
+                                            if((j - maxY) < locationGap){
+                                                maxY = j
+                                                flagY = true
+                                            }
+                                        }
+                                        if(flagX && flagY){
+                                            addflag = true
+                                            locationLimitNext = {
+                                                minX,
+                                                maxX,
+                                                minY,
+                                                maxY
+                                            }
 
+                                        }
+                                    }
+        
+                                    if( addflag){
+
+                                    // debugger
+                                        isPush = true
+                                        let lastIndex = i -1
+                                        if( !locationObject[i]){
+                                            let locationList = []
+                                            locationList.push([i,j])
+                                            locationObject[i] = {
+                                                sum:1,
+                                                start:j,
+                                                end:j,
+                                                locationList
+                                            }
+                                            
+                                            if( locationObject[lastIndex]){
+                                                const { sum } = locationObject[lastIndex]
+                                                if(sum < 20){
+                                                    isDelete = true 
+                                                }else{
+                                                    isDelete = false
+                                                }
+                                            }
+                                        }else{
+                                            let { sum, start, end, locationList} = locationObject[i]
+                                            
+                                            if( j < start ){
+                                                start = j
+                                            }else if ( j > end){
+                                                end = j
+                                            }
+                                            sum += 1
+                                            locationList.push([i,j])
+                                            locationObject[i]={
+                                                sum,
+                                                start,
+                                                end,
+                                                locationList
+                                            }
+                                        }
+                                        if(isDelete){
+                                            let { 
+                                                minX,
+                                                maxX,
+                                                minY,
+                                                maxY
+                                            } = locationLimitNext
+                                            if( minX == lastIndex){
+                                                minX = i
+                                            }
+                                            locationLimitNext ={
+                                                minX,
+                                                maxX,
+                                                minY,
+                                                maxY
+                                            }
+                                        }
+
+                                        
+                                        repleatShallowList[m].sum = +sum + 1
+                                        repleatShallowList[m].locationList.push([i,j])
+                                        repleatShallowList[m].locationLimit = locationLimitNext
+                                        repleatShallowList[m].locationObject = locationObject
+                                        
+                                    }else{
+                                        isPush = false
+                                    }
                                 }
                                 
+                                if(!isPush){
+                                    let locationObject ={}
+                                    let locationList = []
+                                    locationList.push([i,j])
+                                    locationObject[i] = {
+                                        sum:1,
+                                        start:j,
+                                        end:j,
+                                        locationList
+
+                                    }
+                                    let shallowTemp = {
+                                        list:pList,
+                                        colorList:[pList],
+                                        sum:1,
+                                        locationList:[[i,j]],
+                                        locationObject,
+                                        locationLimit:{
+                                            minX:i,
+                                            maxX:i,
+                                            minY:j,
+                                            maxY:j
+                                        }
+                                        
+                                    }
+                                    repleatShallowList.push(shallowTemp)
+        
+                                }
 
                             }
                             
-                            if(flag){
-                                let listLast = repleatObjList[m].list
-                                let listNext = []
-                                for(let i = 0,len = listLast.length; i< len; i++){
-                                    let adverage = null 
-                                    adverage = Math.round((listLast[i] + pList[i])/2)
-                                    listNext.push(adverage)
-                                }
-                                repleatObjList[m].sum = +sum + 1
-                                repleatObjList[m].locationList.push([i,j])
-                                // repleatObjList[m].colorList.push(pList)
-                                repleatObjList[m].locationLimit = locationLimitNext
-                                repleatObjList[m].list = listNext
+                            
 
-                                isPush = true
-                            }
-                        }
-                        if(!isPush){
-                            let res = {
-                                list:pList,
-                                colorList:[pList],
-                                sum:0,
-                                locationList:[[i,j]],
-                                locationLimit:{
-                                    minX:-1,
-                                    maxX:-1,
-                                    minY:-1,
-                                    maxY:-1
+                        }else{
+                            if( repleatObjList.length == 0 ){
+                                let init = {
+                                    list:pList,
+                                    colorList:[pList],
+                                    sum:1,
+                                    locationList:[[i,j]],
+                                    locationLimit:{
+                                        minX:-1,
+                                        maxX:-1,
+                                        minY:-1,
+                                        maxY:-1
+                                    }
+                                    
                                 }
-                                
+                                repleatObjList.push(init)
+    
+                            }else{
+                                let isPush = false
+                                for(let m = 0, lenm = repleatObjList.length; m < lenm; m ++){
+                                    let { sum } = repleatObjList[m]
+                                    let addflag = false
+                                    //比较色值，判断坐标是否连续
+                                    let locationLimit = repleatObjList[m].locationLimit
+                                    let listInit = repleatObjList[m].list
+                                    let locationLimitNext = {}
+                                    let colorGap = 10
+                                    let aFlag = Math.abs( listInit[0]-pList[0]) < colorGap 
+                                    let bFlag = Math.abs( listInit[1]-pList[1]) < colorGap
+                                    let cFlag = Math.abs( listInit[2]-pList[2]) < colorGap
+                                    let colorFlag = aFlag && bFlag && cFlag
+                                    let locationGap = 10
+                                    if(colorFlag){
+                                        let { 
+                                                minX,
+                                                maxX,
+                                                minY,
+                                                maxY
+                                            } = locationLimit
+                                        if( sum === 1){
+                                            addflag = true
+                                            locationLimitNext = {
+                                                minX:i,
+                                                maxX:i,
+                                                minY:j,
+                                                maxY:j
+                                            }
+                                        }else{
+                                            let flagX = false
+                                            let flagY = false
+                                            if(i <= minX){
+                                                if((minX - i) < locationGap){
+                                                    minX = i
+                                                    flagX = true
+                                                }
+                                            }else if( i >= maxX){
+                                                if((i - maxX) < locationGap){
+                                                    maxX = i
+                                                    flagX = true
+                                                }
+                                            }
+                                            // else{
+                                            //     flagX = true
+                                            // }
+                                            if(j <= minY){
+                                                if((minY - j) < locationGap){
+                                                    minY = j
+                                                    flagY = true
+                                                }
+                                            }else if( j >= maxY){
+                                                if((j - maxY) < locationGap){
+                                                    maxY = j
+                                                    flagY = true
+                                                }
+                                            }
+                                            // else{
+                                            //     flagY = true
+                                            // }
+                                            if(flagX && flagY){
+                                                addflag = true
+                                                locationLimitNext = {
+                                                    minX,
+                                                    maxX,
+                                                    minY,
+                                                    maxY
+                                                }
+        
+                                            }
+        
+                                        }
+                                        
+        
+                                    }
+                                    if( addflag){
+                                        let listLast = repleatObjList[m].list
+                                        let listNext = []
+                                        for(let i = 0,len = listLast.length; i< len; i++){
+                                            let adverage = null 
+                                            adverage = Math.round((listLast[i] + pList[i])/2)
+                                            listNext.push(adverage)
+                                        }
+                                        repleatObjList[m].sum = +sum + 1
+                                        repleatObjList[m].locationList.push([i,j])
+                                        // repleatObjList[m].colorList.push(pList)
+                                        repleatObjList[m].locationLimit = locationLimitNext
+                                        repleatObjList[m].list = listNext
+        
+                                        isPush = true
+                                    }
+                                }
+                                if(!isPush && repleatObjList.length > 1){
+                                    let tempRepleat = {
+                                        list:pList,
+                                        colorList:[pList],
+                                        sum:1,
+                                        locationList:[[i,j]],
+                                        locationLimit:{
+                                            minX:-1,
+                                            maxX:-1,
+                                            minY:-1,
+                                            maxY:-1
+                                        }
+                                        
+                                    }
+                                    repleatObjList.push(tempRepleat)
+                                }
+
                             }
-                            repleatObjList.push(res)
+                            
 
                         }
                         location = [i,j]
@@ -155,6 +369,7 @@ async function handleImg(path){
                             location,
                             pList:pList
                         })
+                        
                     }
                     pList = []
                 }
@@ -162,36 +377,20 @@ async function handleImg(path){
             repleatObjList.sort( (a,b) =>{
                 return  b.sum - a.sum
             })
-            // console.log('result',result)
-            // console.log('repleatObjList[0]',repleatObjList[0])
-            // console.log('repleatObjList[1]',repleatObjList[1])
-            // console.log('repleatObjList[2]',repleatObjList[2])
-            let goalLocation = []
             let goalLocationInit = []
             let goalGap = 90
-            // debugger
             repleatObjList.forEach( (v,i) =>{
-                let { list } = v
-                // let flagA = Math.abs( list[0] - 88) < goalGap
-                // let flagB = Math.abs( list[1] - 51) < goalGap
-                // let flagC = Math.abs( list[2] - 34) < goalGap
+                let { list, sum } = v
                 let flagA =  list[0]  < goalGap
                 let flagB =  list[1]  < goalGap
                 let flagC =  list[2]  < goalGap
                 if(flagA && flagB && flagC){
                     goalLocationInit.push(v)
                 }
-                
             })
-            // debugger
             
             if(goalLocationInit.length > 0 ){
-                goalLocationInit.sort( (a,b) =>{
-                    return b.sum - a.sum
-                })
-                
                 let locationLimitList = []
-
                 goalLocationInit.forEach( (v,i) => {
                     let goalLocation = v.locationList
                     if( i >= 0 && i <= 2){
@@ -206,7 +405,6 @@ async function handleImg(path){
                         minXEnd = temp
                     }
                 })
-                // console.log('locationLimitList',locationLimitList)
                 minX = minXEnd
                 locationLimitList.forEach( (v,i) =>{
                     if(minXEnd ==  v.minX){
@@ -215,16 +413,57 @@ async function handleImg(path){
                         maxY = v.maxY
                     }
                 })
-
-
-
-    
-                
-                
-                
-                
-                
             }
+            if(goalNums){
+                // console.log(repleatShallowList)
+                // debugger
+                repleatShallowList.forEach( (v,i) =>{
+                    const { locationLimit, sum, locationObject } = v
+                    let objectKeys = Object.keys(locationObject)
+                    let len = objectKeys.length-1
+                    let yEndObj = {}
+                    let yEnd = ''
+                    let tempMinX = ''
+                    while(len){
+                        const { sum, end } = locationObject[objectKeys[len]]
+                        if(yEnd){
+                            if(sum > 18){
+                                
+                                if( yEnd - end < 1){
+                                    if( objectKeys[len] < tempMinX){
+                                        tempMinX = objectKeys[len] 
+                                        // debugger
+                                    }
+                                    
+                                }
+                            }
+
+                        }else{
+                            if(sum > 40){
+                                if( !yEndObj[end]){
+                                    yEndObj[end] = 1
+                                }else{
+                                    yEndObj[end] += 1
+                                    if( yEndObj[end] > 5){
+                                        yEnd = end
+                                        tempMinX = objectKeys[len]
+                                    }
+                                }
+                            }
+
+                        }
+
+                        len--
+                    }
+                    // if(Math.abs( sum - goalNums) < 500){
+                        minX = tempMinX
+                    // }
+                    // debugger
+
+                })
+
+            }
+           
             
             let res = {
                 width,
@@ -237,22 +476,23 @@ async function handleImg(path){
         
             return res
        }
-        // console.log('res',res)
     }catch(e){
         throw(e)
     }
     
 }
 async function handleImgToPostition(bigImg,smallImg){
-    let result =  await handleImg(bigImg)
     let resultKey =  await handleImg(smallImg)
-    // console.log('handle result', result)
-    // console.log('handle resultKey', resultKey)
-    const { minX, maxX, width } = result || {}
-    if(maxX == 0){
+    const keyWidth = resultKey?.width
+    const keyheight = resultKey?.height
+    const goalNums = keyWidth * keyheight
+
+    let result =  await handleImg(bigImg, goalNums)
+    
+    const { minX, maxX, width, height } = result || {}
+    if(minX == 0){
         return false
     }else{
-        const keyWidth = resultKey?.width
         let end = { minX, keyWidth }
         return end
     }
@@ -296,7 +536,6 @@ function getLocationLimit(goalLocation){
             }
         }
     })
-    // console.log('min', minX, maxX, minY, maxY)
     let goalRes = {}
     goalLocation.forEach( v =>{
         let val = v[0]
