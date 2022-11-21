@@ -1,7 +1,7 @@
 const axios = require('axios');
 const model = require('../model');
 const {formatLimit} = require('../utils/formatDate')
-const { searchPageData } = require('../scrawlPage/searchPageData')
+const { menuClick } = require('./searchPageData')
 const _ = require('lodash')
 const log = console.log
 
@@ -58,7 +58,8 @@ const searchDataFn = async (ctx, next) => {
                 let beginTimeFormat = formatLimit(beginTime)
                 let now = new Date().getTime()
                 let nowDay = formatLimit(now)
-                if(nowDay != beginTimeFormat){
+                // if(nowDay != beginTimeFormat){
+                    if(true){
                     //查询是否已经查过
                     
                     beginDay = await orderDaysModel.findAll({
@@ -79,7 +80,7 @@ const searchDataFn = async (ctx, next) => {
                     //获取订单数据
                     // beginTime = '2022-03-14 00:00:00'
                     if(!isSearchDayOrder){
-                        orderList = await searchPageData(beginTime)
+                        orderList = await menuClick(0,{startTime:beginTime})
                     }
                     isSearchDayOrder = true
                     console.log('orderList',orderList)
@@ -130,7 +131,7 @@ const searchDataFn = async (ctx, next) => {
                 await orderDaysModel.update(nextUpdateDay,{where:{id}})
             }
             
-            //分配佣金
+            // 分配佣金
             let userIdSum = 0
             let amountLeft = '0'
             let lenCheck = checkResList.length

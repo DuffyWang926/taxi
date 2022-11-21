@@ -959,16 +959,6 @@ async function testPixel(){
         i--
 
     }
-   
-    
-    
-    
-
-    
-
-
-
-
 }
 
 module.exports = {

@@ -9,27 +9,19 @@ const searchJDPageData = async (ctx, next) => {
     let params = ctx.query || {}
     log(chalk.yellow('searchJDPageData start params', JSON.stringify(params) ))
     
-    let { goodName } = params
+    let { goodName, type = 1 } = params
     if( !goodName ){
         params.goodName = '面膜'
     }
     
-    browser = await puppeteer.launch({
-        // headless: false,
-        headless: true,
-        args: ['--no-sandbox']
-    })
-    
-    
     let dataList = []
-    let type = 1
     try {
         if(!page){
-            await login(browser)
+            await login()
         }
         
-        await menuClick(type)
-        dataList = await handlePage(type, params)
+        dataList =  await menuClick(type, params)
+        
 
         
         let dataRes = {
@@ -59,7 +51,12 @@ const searchJDPageData = async (ctx, next) => {
     }
 };
 
-async function login(browser){
+async function login(){
+    browser = await puppeteer.launch({
+        headless: false,
+        // headless: true,
+        args: ['--no-sandbox']
+    })
     let url = 'https://pub.yunzhanxinxi.com'
     page = await browser.newPage()
     await page.goto(url)
@@ -84,13 +81,18 @@ async function login(browser){
 
 }
 
-async function menuClick(type){
+async function menuClick(type, params){
+    if(!page){
+        await login()
+    }
+    let dataList = []
     //菜单
     if(type == 0){
         //详情
         
         await page.click('.layout_menu-items>li:nth-child(2)')
         await page.waitForTimeout(1000)
+        
 
     }else if(type == 1){
         await page.click('.layout_menu>li:nth-child(5)')
@@ -99,23 +101,27 @@ async function menuClick(type){
         await page.waitForTimeout(1000)
 
     }
+    dataList = await handlePage(type, params)
+    return dataList
      
 }
 
 async function handlePage(type, params){
     let dataList = []
     if(type == 0){
-        dataList = await handleDetailPage()
+        dataList = await handleDetailPage(params)
     }else if(type == 1){
         dataList = await handleJDPage(params)
     }
     return dataList
 }
 
-async function handleDetailPage(){
+async function handleDetailPage(params){
+    const { startTime } = params
+    log(chalk.yellow('handleDetailPage start startTime', startTime))
     let dataList = []
+    log(chalk.yellow('startTime', startTime))
     //时间设置
-    var startTime = new Date('2022-03-14 00:00:00').getTime()
     let inputNode = await page.$('.el-range-input')
     inputNode.click()
     await page.waitForTimeout(1000)
@@ -129,8 +135,8 @@ async function handleDetailPage(){
     }
     let startMonth = new Date(+startTime).getMonth() + 1
     let startDay = new Date(+startTime).getDate()
+    // let endDay = new Date().getDate()
     log(headerText)
-    log('startDay',startDay)
     if(startMonth < headerMonth){
         await page.click('.el-date-range-picker__header>button:nth-child(2)')
         await page.waitForTimeout(1000)
@@ -140,7 +146,7 @@ async function handleDetailPage(){
     }
     let rowList = await page.$$('.is-left>.el-date-table>tbody>.el-date-table__row>.available')
     await rowList[+startDay-1].click()
-    await rowList[+startDay-1].click()
+    await rowList[+startDay -1].click()
     await page.waitForTimeout(1000)
     //获取数据
     let tableRow = await page.$$('.el-table__fixed-body-wrapper>.el-table__body>tbody>.el-table__row') || []
@@ -152,6 +158,8 @@ async function handleDetailPage(){
             let text = await tdList[j].$eval('div', e => e.innerHTML)
             if(j == 1){
                 data.order_no = text
+            }else if(j == 2){
+                data.goods_name = text
             }else if(j == 5){
                 data.paid_time = text
             }else if(j == 11){
@@ -162,10 +170,12 @@ async function handleDetailPage(){
         }
         dataList.push(data)
     }
+    
     return dataList
 }
 
 async function handleJDPage(params){
+    log(chalk.yellow('handleJDPage start'))
     const { goodName, num, pageNum = 1 } = params
     let dataList = []
     await page.type('.keywordInput', goodName)
@@ -184,36 +194,20 @@ async function handleJDPage(params){
     
     for(let i = 0 ; i < len; i++){
         let item = goodsList[i]
-        log(chalk.yellow('len',len))
-        log(chalk.yellow('item',item.click))
         //img
         let imgUrl = await item.$eval('img', el => el.src); 
-        log(chalk.yellow('imgUrl',imgUrl))
-        
         //title
         let title = await item.$eval('.title', el => el.textContent); 
-        log(chalk.yellow('title',title))
-
         let oldPrice = await item.$eval('.original-price', el => el.textContent); 
         oldPrice.replace('￥','')
-        log(chalk.yellow('oldPrice',oldPrice))
-
         let nowPrice = await item.$eval('.money>div>span', el => el.textContent); 
         nowPrice.replace('￥','')
-        log(chalk.yellow('nowPrice',nowPrice))
-
         let makeMoney = await item.$eval('.money>div:nth-child(2)>span', el => el.textContent); 
         makeMoney.replace('￥','')
-        log(chalk.yellow('makeMoney',makeMoney))
-
         let makeMoneyPercent = await item.$eval('.money>div:nth-child(3)>span', el => el.textContent); 
         makeMoneyPercent.replace('￥','')
-        log(chalk.yellow('makeMoneyPercent',makeMoneyPercent))
-
         let couponMoney = await item.$eval('.discountMoney>span:nth-of-type(2)', el => el.textContent); 
         couponMoney.replace('元','')
-        log(chalk.yellow('couponMoney',couponMoney))
-
         let buttonPath = '.commodity-list>div:nth-child(1)>div:nth-of-type(5)>div' 
         await page.click(buttonPath)
         await page.waitForTimeout(1000)
@@ -261,5 +255,6 @@ async function getGoodLink(couponMoney){
 
 module.exports = {
     'GET /taxiapi/searchJDPageData': searchJDPageData,
+    menuClick
     
 };

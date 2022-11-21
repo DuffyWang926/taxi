@@ -3,7 +3,9 @@ const db = require('../db');
 module.exports = db.defineModel('userOrders', {
     id:db.STRING(40),
     userId:db.STRING(10),
+    openid:db.STRING(20),
     clickTime: db.STRING(40),
+    goodName: db.STRING(60),
     isCheck:db.BIGINT(2)
 });
 
@@ -30,3 +32,4 @@ let test =
     updatedAt:'test',
     version:1.0
 }
+// alter table 表名 add column 列名 varchar(30);

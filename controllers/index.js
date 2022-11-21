@@ -40,7 +40,7 @@ var fn_login = async (ctx, next) => {
             url: userInfoUrl,
         })
         let userInfoData = userInfoRes.data || {}
-        const {  nickname= '', sex= -1, province = '', city = '', headimgurl = '', unionid = 'test' } = userInfoData
+        const {  nickname= '', sex= -1, province = '', city = '', headimgurl = '', unionid = '' } = userInfoData
         let userModel = model.user
         let now = new Date().getTime() + ''
         let users = await  userModel.findAll({
@@ -158,10 +158,33 @@ async function fnHome(ctx){
     }
 
 }
+const fnRecordTime = async (ctx, next) => {
+    let body = ctx.request.body
+    let { userId, clickTime, openid, goodName} = body
 
+    let userOrdersModel = model.userOrders
+    let userOrder = {
+        id:clickTime,
+        userId,
+        openid,
+        goodName,
+        clickTime,
+        isCheck:0
+    }
+
+    let response = await userOrdersModel.create(userOrder)
+    
+    ctx.response.body = {
+                            code:200,
+                            data:{
+                                
+                            }
+                        }
+};
 module.exports = {
     'POST /taxiapi/login': fn_login,
     'GET /taxiapi/login': fn_login,
     'GET /': fnHome,
     'POST /taxiapi/getopenid': fnGetOpenId,
+    'POST /taxiapi/recordTime': fnRecordTime,
 };
