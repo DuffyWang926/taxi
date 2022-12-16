@@ -2,7 +2,7 @@ const db = require('../db');
 
 module.exports = db.defineModel('userOrders', {
     id:db.STRING(40),
-    openid:db.STRING(20),
+    openid:db.STRING(40),
     clickTime: db.STRING(40),
     goodName: db.STRING(60),
     isCheck:db.BIGINT(2)
@@ -18,6 +18,7 @@ module.exports = db.defineModel('userOrders', {
 // ) engine=innodb;
 
 // alter table userOrders drop userId;
+// alter table userOrders modify openid varchar(40);
 let test =                                
 {
     id:'0',
