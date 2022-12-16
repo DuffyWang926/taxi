@@ -94,42 +94,42 @@ const searchDataFn = async (ctx, next) => {
                             await computeListAmount(item, orderList, true)
                         }
                     }
-                    if(updateFlag){
-                        //更新时间为查过
-                        let userUpdateOrders = await userOrdersModel.findAll({
-                            where:{
-                                clickTime:v.clickTime
-                            },
-                        })
-                        if(userUpdateOrders?.length ==  1){
-                            let userUpdateOrder = userUpdateOrders[0]
-                            const {id, userId, clickTime} = userUpdateOrder
-                            userUpdateOrder.isCheck = updateFlag
-                            let nextUserOrder ={
-                                id:userId,
-                                userId,
-                                clickTime,
-                                isCheck:updateFlag
-                            }
-                            await userOrdersModel.update(nextUserOrder,{where:{id}})
-                        }
+                    // if(updateFlag){
+                    //     //更新userOrders时间为查过
+                    //     let userUpdateOrders = await userOrdersModel.findAll({
+                    //         where:{
+                    //             clickTime:v.clickTime
+                    //         },
+                    //     })
+                    //     if(userUpdateOrders?.length ==  1){
+                    //         let userUpdateOrder = userUpdateOrders[0]
+                    //         const {id, userId, clickTime} = userUpdateOrder
+                    //         userUpdateOrder.isCheck = updateFlag
+                    //         let nextUserOrder ={
+                    //             id:userId,
+                    //             userId,
+                    //             clickTime,
+                    //             isCheck:updateFlag
+                    //         }
+                    //         await userOrdersModel.update(nextUserOrder,{where:{id}})
+                    //     }
 
-                    }
+                    // }
                     
                 }
                 
             }
-            //更新时间为查过
-            if(beginDay && beginDay.length > 0){
-                let updateDay = beginDay[0]
-                const { id, orderDay } = updateDay
-                let nextUpdateDay = {
-                    id,
-                    orderDay,
-                    isCheck:true
-                }
-                await orderDaysModel.update(nextUpdateDay,{where:{id}})
-            }
+            // //更新orderDays时间为查过
+            // if(beginDay && beginDay.length > 0){
+            //     let updateDay = beginDay[0]
+            //     const { id, orderDay } = updateDay
+            //     let nextUpdateDay = {
+            //         id,
+            //         orderDay,
+            //         isCheck:true
+            //     }
+            //     await orderDaysModel.update(nextUpdateDay,{where:{id}})
+            // }
             
             // 分配佣金
             let userIdSum = 0
@@ -137,9 +137,14 @@ const searchDataFn = async (ctx, next) => {
             let lenCheck = checkResList.length
             for(let checkIndex = 0; checkIndex < lenCheck; checkIndex++){
                 let v = checkResList[checkIndex]
-                const { order_no, userId , settle_amount} = v
+                const { order_no, userId , openid, settle_amount} = v
                 if(settle_amount){
-                    await updateAmount(userId, settle_amount)
+                    let amountParams = {
+                        userId,
+                        amount:settle_amount,
+                        openid
+                    }
+                    await updateAmount(amountParams)
                 }else{
                     userIdSum += 1
                     orderList.forEach( item =>{
@@ -154,11 +159,16 @@ const searchDataFn = async (ctx, next) => {
             }
             for(let checkIndex = 0; checkIndex < lenCheck; checkIndex++){
                 let v = checkResList[checkIndex]
-                const {  userId , settle_amount} = v
+                const {  userId , settle_amount, openid} = v
                 if(!settle_amount){
                     if(userIdSum < orderList?.length * 2){
                         let shareAmount = parseInt(amountLeft * 100 / userIdSum)/100
-                        await updateAmount(userId, shareAmount)
+                        let amountParams = {
+                            userId,
+                            amount:shareAmount,
+                            openid
+                        }
+                        await updateAmount(amountParams)
                     }
                 }
             }
@@ -176,6 +186,7 @@ const searchDataFn = async (ctx, next) => {
 };
 
 async function computeAmount(userOrder, orderList){
+    console.log('computeAmount start')
     const { clickTime, userId } = userOrder
     orderList.sort( (a,b) =>{
         return a.paid_time - b.paid_time
@@ -205,6 +216,7 @@ async function computeAmount(userOrder, orderList){
 
 }
 async function computeListAmount(userOrders, orderList){
+    console.log('computeListAmount start')
     orderList.sort( (a,b) =>{
         return a.paid_time - b.paid_time
     })
@@ -213,22 +225,32 @@ async function computeListAmount(userOrders, orderList){
         const { settle_amount } = item
         for(let j = 0, lenj = userOrders.length; j < lenj; j++){
             let v = userOrders[j]
-            const { userId } = v
-            await updateAmount(userId,settle_amount)
+            const { userId, openid } = v
+            let amountParams = {
+                userId,
+                amount:settle_amount,
+                openid
+            }
+            await updateAmount(amountParams)
         }
     }
 
     
 }
 
-async function updateAmount(userId, amount, isParent){
+async function updateAmount(amountParams){
+    console.log('updateAmount start')
+    const { userId, amount, isParent, openid } = amountParams
     let nextamount= +amount
     let usersModel = model.user
-    let users = await usersModel.findAll({
+    let users = []
+   
+    users = await usersModel.findAll({
         where:{
-            userId:userId
+            openid:openid
         }
     })
+    
     let upId = ''
     if(users && users.length > 0){
             upId  = users[0] && users[0].upId || ''
@@ -237,7 +259,7 @@ async function updateAmount(userId, amount, isParent){
 
     let userAccounts = await userAccountsModel.findAll({
         where: {
-            userId:userId
+            openid:openid
         }
     })
     let amnountNow = Math.floor(nextamount * 0.3 * 0.6 *100) /100 + ''
@@ -251,15 +273,21 @@ async function updateAmount(userId, amount, isParent){
     
     if(userAccounts && userAccounts.length == 0){
         let newAccount = {
-            id:userId,
+            id:openid,
             userId:userId,
+            openid:openid,
             upId,
             amount:amnountNow,
         }
         await userAccountsModel.create(newAccount)
         if(upId){
             let upNextAmount = Math.floor(amnountNow *100 /0.7 *0.3 )/100
-            await updateAmount(upId, upNextAmount,true)
+            let amountParams = {
+                userId:upId,
+                amount:upNextAmount,
+                isParent:true
+            }
+            await updateAmount(amountParams)
         }
     }else{
         let userAccount = userAccounts[0]
@@ -277,7 +305,13 @@ async function updateAmount(userId, amount, isParent){
         await userAccountsModel.update(nextUserAccount,{where:{userId}})
         if(upId){
             let upNextAmount = Math.floor(amnountNow *100 /0.7 *0.3 )/100
-            await updateAmount(upId, upNextAmount,true)
+            let amountParams = {
+                userId:upId,
+                amount:upNextAmount,
+                isParent:true
+            }
+            
+            await updateAmount(amountParams)
         }
     }
 }

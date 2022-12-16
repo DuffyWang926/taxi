@@ -53,8 +53,8 @@ const searchJDPageData = async (ctx, next) => {
 
 async function login(){
     browser = await puppeteer.launch({
-        // headless: false,
-        headless: true,
+        headless: false,
+        // headless: true,
         args: ['--no-sandbox']
     })
     let url = 'https://pub.yunzhanxinxi.com'
@@ -173,6 +173,7 @@ async function handleDetailPage(params){
     
     return dataList
 }
+
 
 async function handleJDPage(params){
     log(chalk.yellow('handleJDPage start'))

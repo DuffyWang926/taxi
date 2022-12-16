@@ -3,6 +3,7 @@ const db = require('../db');
 module.exports = db.defineModel('userAccounts', {
     id:db.STRING(10),
     userId:db.STRING(10),
+    openid:db.STRING(40),
     upId:db.STRING(10),
     amount: db.STRING(10),
 });
@@ -15,7 +16,8 @@ module.exports = db.defineModel('userAccounts', {
 //     amount varchar(10),
 //     primary key (id)
 // ) engine=innodb;
-
+// alter table userAccounts add COLUMN openid VARCHAR(40) DEFAULT NULL;
+// alter table userAccounts modify id varchar(40);
 let test =                                
 {
     id:'0',

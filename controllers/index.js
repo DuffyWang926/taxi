@@ -159,21 +159,21 @@ async function fnHome(ctx){
 
 }
 const fnRecordTime = async (ctx, next) => {
+    console.log('RecordTime',ctx.request.body )
     let body = ctx.request.body
-    let { userId, clickTime, openid, goodName} = body
+    let { clickTime, openid, goodName = ''} = body
 
     let userOrdersModel = model.userOrders
     let userOrder = {
         id:clickTime,
-        userId,
         openid,
         goodName,
         clickTime,
         isCheck:0
     }
-
-    let response = await userOrdersModel.create(userOrder)
-    
+    if(openid){
+        await userOrdersModel.create(userOrder)
+    }
     ctx.response.body = {
                             code:200,
                             data:{
