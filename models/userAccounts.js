@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = db.defineModel('userAccounts', {
-    id:db.STRING(10),
+    id:db.STRING(40),
     userId:db.STRING(10),
     openid:db.STRING(40),
     upId:db.STRING(10),

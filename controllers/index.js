@@ -6,7 +6,7 @@ const Op = Sequelize.Op
 var fn_login = async (ctx, next) => {
     let body = ctx.request.body
     let { code, upCode = '' } = body
-    let secret = 'secret'
+    let secret = '1d3b61572a9edbb288b25472f4e1fb60'
     let url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxe52a97ff5cbcfc9a&secret=${secret}&code=${code}&grant_type=authorization_code`
     let response = await axios({
         method: "GET",
@@ -130,7 +130,7 @@ var fn_login = async (ctx, next) => {
 async function fnGetOpenId(ctx){
     let body = ctx.request.body
     let { code } = body
-    let secret = 'secret'
+    let secret = '1d3b61572a9edbb288b25472f4e1fb60'
     let url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxe52a97ff5cbcfc9a&secret=${secret}&code=${code}&grant_type=authorization_code`
     let response = await axios({
         method: "GET",

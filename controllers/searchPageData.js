@@ -2,6 +2,7 @@ const model = require('../model');
 const _ = require('lodash')
 const puppeteer = require('puppeteer')
 const chalk = require('chalk')
+const { cacheObj } = require('../constants/cache')
 const log = console.log
 let page = null
 let browser = null
@@ -53,8 +54,8 @@ const searchJDPageData = async (ctx, next) => {
 
 async function login(){
     browser = await puppeteer.launch({
-        headless: false,
-        // headless: true,
+        // headless: false,
+        headless: true,
         args: ['--no-sandbox']
     })
     let url = 'https://pub.yunzhanxinxi.com'
@@ -82,8 +83,22 @@ async function login(){
 }
 
 async function menuClick(type, params){
-    if(!page){
+    let lastCache = cacheObj()
+    let lastDate = lastCache?.logDate
+    log('lastDate',lastDate)
+    let now = new Date().getTime()
+    let timeGap = parseInt( (now - lastDate)/1000 )
+    log('timeGap',timeGap)
+    if( timeGap > 3600){
+        let nowCache = cacheObj({logDate:now})
+        log('nowCache',nowCache)
         await login()
+
+    }else if(!page){
+        let nowCache = cacheObj({logDate:now})
+        log('nowCache',nowCache)
+        await login()
+        
     }
     let dataList = []
     //菜单
@@ -117,10 +132,10 @@ async function handlePage(type, params){
 }
 
 async function handleDetailPage(params){
-    const { startTime } = params
-    log(chalk.yellow('handleDetailPage start startTime', startTime))
+    const { startTime, endTime } = params
+    log(chalk.yellow('handleDetailPage start startTime', startTime, endTime))
     let dataList = []
-    log(chalk.yellow('startTime', startTime))
+    
     //时间设置
     let inputNode = await page.$('.el-range-input')
     inputNode.click()
@@ -135,8 +150,9 @@ async function handleDetailPage(params){
     }
     let startMonth = new Date(+startTime).getMonth() + 1
     let startDay = new Date(+startTime).getDate()
-    // let endDay = new Date().getDate()
+    let endDay = new Date(+endTime).getDate()
     log(headerText)
+    log(chalk.yellow('startDay ', startDay, endDay))
     if(startMonth < headerMonth){
         await page.click('.el-date-range-picker__header>button:nth-child(2)')
         await page.waitForTimeout(1000)
@@ -145,8 +161,9 @@ async function handleDetailPage(params){
         await page.waitForTimeout(1000)
     }
     let rowList = await page.$$('.is-left>.el-date-table>tbody>.el-date-table__row>.available')
+    log(chalk.yellow('rowList ', rowList))
     await rowList[+startDay-1].click()
-    await rowList[+startDay -1].click()
+    await rowList[+endDay -1].click()
     await page.waitForTimeout(1000)
     //获取数据
     let tableRow = await page.$$('.el-table__fixed-body-wrapper>.el-table__body>tbody>.el-table__row') || []

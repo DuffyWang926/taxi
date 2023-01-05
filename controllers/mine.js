@@ -15,9 +15,31 @@ const codeImgFn = async (ctx, next) => {
                         }
 };
 
+const userAccountFn = async (ctx, next) => {
+    let body = ctx.request.body
+    let { openid } = body
+    let userAccountsModel = model.userAccounts
+    let userAccounts = await userAccountsModel.findAll({
+        where: {
+            openid:openid
+        }
+    })
+    let userAccount = userAccounts[0]
+    ctx.response.body = {
+        code:200,
+        data:{
+            userAccount
+        }
+    }
+
+
+    
+};
+
 
 
 module.exports = {
     'POST /taxiapi/codeImg': codeImgFn,
+    'POST /taxiapi/userAccount': userAccountFn,
     
 };
