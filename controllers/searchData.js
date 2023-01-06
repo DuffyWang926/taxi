@@ -384,9 +384,9 @@ async function updateAmount(amountParams){
 
     }
     
-    let amnountNow = (Math.floor(nextamount * 0.7 * 0.6 *100) /100).toFixed(2) + ''
+    let amnountNow = (Math.floor(nextamount *100 * 0.6 ) /100).toFixed(2) + ''
     if(upId){
-        amnountNow = (Math.floor(nextamount * 100 * 0.7 * 0.7  ) /100).toFixed(2)
+        amnountNow = (Math.floor(nextamount * 100 * 0.7  ) /100).toFixed(2)
     }
     if(isParent){
         amnountNow = (+amount).toFixed(2) 

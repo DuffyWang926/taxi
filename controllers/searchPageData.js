@@ -6,11 +6,12 @@ const { cacheObj } = require('../constants/cache')
 const log = console.log
 let page = null
 let browser = null
+let initDate = 0
 const searchJDPageData = async (ctx, next) => {
     let params = ctx.query || {}
     log(chalk.yellow('searchJDPageData start params', JSON.stringify(params) ))
-    
-    let { goodName, type = 1 } = params
+    initDate = new Date().getTime()
+    let { goodName, type = 1, num, pageNum} = params
     if( !goodName ){
         params.goodName = '面膜'
     }
@@ -20,8 +21,29 @@ const searchJDPageData = async (ctx, next) => {
         if(!page){
             await login()
         }
+        let lastCache = cacheObj()
+        const { cacheGoods } = lastCache || {}
+        let goodsList = []
+        let lastNum = 0
+        if( cacheGoods && (cacheGoods.goodName == goodName) && (cacheGoods.pageNum == pageNum)){
+            goodsList = cacheGoods.goodsList
+            lastNum = cacheGoods.lastNum
+            let goodListParams = {
+                start:lastNum,
+                end:(+lastNum) + (+num),
+                goodsList
+            }
+            let gap = ( new Date().getTime() - initDate)/1000
+            log('cahe gap', gap)
+            dataList = await handleGoodList(goodListParams)
+            gap = ( new Date().getTime() - initDate)/1000
+            log('cahe end gap', gap)
+            log('cache goodsList')
+        }else{
+            dataList =  await menuClick(type, params)
+
+        }
         
-        dataList =  await menuClick(type, params)
         
 
         
@@ -54,8 +76,8 @@ const searchJDPageData = async (ctx, next) => {
 
 async function login(){
     browser = await puppeteer.launch({
-        // headless: false,
-        headless: true,
+        headless: false,
+        // headless: true,
         args: ['--no-sandbox']
     })
     let url = 'https://pub.yunzhanxinxi.com'
@@ -64,8 +86,8 @@ async function login(){
     log(chalk.yellow('云瞻开放平台页面初次加载完毕'))
     await page.content();
     //登录
-    await page.waitForTimeout(2000)
-    await page.waitForSelector('.offline-btn')
+    await page.waitForTimeout(1000)
+    // await page.waitForSelector('.offline-btn')
     // await page.click('.offline-btn')
     await page.click('.login_type-item:nth-last-child(1)')
     let phone = '15321830653'
@@ -77,7 +99,7 @@ async function login(){
     await page.waitForSelector('.group-popper-wrapper >div:nth-last-of-type(1)')
     await page.click('.group-popper-wrapper>div:nth-last-of-type(1)')
     await page.waitForSelector('.close')
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(500)
     await page.click('.close>.dark')
 
 }
@@ -85,20 +107,18 @@ async function login(){
 async function menuClick(type, params){
     let lastCache = cacheObj()
     let lastDate = lastCache?.logDate
-    log('lastDate',lastDate)
     let now = new Date().getTime()
     let timeGap = parseInt( (now - lastDate)/1000 )
-    log('timeGap',timeGap)
-    if( timeGap > 3600){
-        let nowCache = cacheObj({logDate:now})
-        log('nowCache',nowCache)
-        await login()
-
-    }else if(!page){
+    if(!page){
         let nowCache = cacheObj({logDate:now})
         log('nowCache',nowCache)
         await login()
         
+    }else if( timeGap > 3600 &&  lastDate){
+        let nowCache = cacheObj({logDate:now})
+        log('nowCache timeGap',nowCache)
+        await login()
+
     }
     let dataList = []
     //菜单
@@ -195,7 +215,7 @@ async function handleDetailPage(params){
 async function handleJDPage(params){
     log(chalk.yellow('handleJDPage start'))
     const { goodName, num, pageNum = 1 } = params
-    let dataList = []
+    
     await page.type('.keywordInput', goodName)
     await page.click('.search .button')
     await page.waitForTimeout(1000)
@@ -205,31 +225,60 @@ async function handleJDPage(params){
         await page.waitForTimeout(1000)
     }
     let goodsList = await page.$$('.commodity-list .commodity-item') || []
+    
+    let cacheGoodsNext = {
+        goodName,
+        pageNum,
+        goodsList,
+        lastNum:num
+    }
+    cacheObj({cacheGoods:cacheGoodsNext })
+    
     let len = goodsList.length
     if(num < len){
         len = num
     }
+    let gap = ( new Date().getTime() - initDate)/1000
+    log('cicle gap', gap)
+    let goodListparams = {
+        start:0,
+        end:num,
+        goodsList
+    }
+    let dataList = await handleGoodList(goodListparams)
     
-    for(let i = 0 ; i < len; i++){
+
+    return dataList
+}
+async function handleGoodList(params){
+    const { start, end, goodsList } = params
+    log('handleGoodList start params ', params)
+    let dataList = []
+    for(let i = start ; i < end; i++){
         let item = goodsList[i]
-        //img
         let imgUrl = await item.$eval('img', el => el.src); 
-        //title
         let title = await item.$eval('.title', el => el.textContent); 
         let oldPrice = await item.$eval('.original-price', el => el.textContent); 
-        oldPrice.replace('￥','')
-        let nowPrice = await item.$eval('.money>div>span', el => el.textContent); 
-        nowPrice.replace('￥','')
+        oldPrice = oldPrice.substring(1)
+        let nowPrice = await item.$eval('.money>div>span', el => el.textContent);
+        nowPrice = nowPrice.substring(1) 
         let makeMoney = await item.$eval('.money>div:nth-child(2)>span', el => el.textContent); 
-        makeMoney.replace('￥','')
+        makeMoney = makeMoney.substring(1) 
+        if(makeMoney){
+            makeMoney = (Math.floor( (+makeMoney)  *100 * 0.6 ) /100).toFixed(2) + ''
+        }
+        
         let makeMoneyPercent = await item.$eval('.money>div:nth-child(3)>span', el => el.textContent); 
-        makeMoneyPercent.replace('￥','')
         let couponMoney = await item.$eval('.discountMoney>span:nth-of-type(2)', el => el.textContent); 
         couponMoney.replace('元','')
         let buttonPath = '.commodity-list>div:nth-child(1)>div:nth-of-type(5)>div' 
         await page.click(buttonPath)
-        await page.waitForTimeout(1000)
+        let gap = ( new Date().getTime() - initDate)/1000
+        log('cicle buttonPath', gap)
+        await page.waitForTimeout(100)
         let linkObj = await getGoodLink(couponMoney)
+        gap = ( new Date().getTime() - initDate)/1000
+        log('cicle couponMoney end', gap)
         const { link, couponLink } = linkObj
 
         let res = {
@@ -248,9 +297,12 @@ async function handleJDPage(params){
     }
 
     return dataList
+
 }
+
 async function getGoodLink(couponMoney){
     await page.click('.promotiontype>div:nth-child(2)')
+    await page.waitForTimeout(600)
     let link = await page.$eval('.promotioncontent>a', el => el.textContent) || ''; 
     log(chalk.yellow('link',link))
     let couponLink = ''
