@@ -28,14 +28,27 @@ const searchJDPageData = async (ctx, next) => {
         if( cacheGoods && (cacheGoods.goodName == goodName) && (cacheGoods.pageNum == pageNum)){
             goodsList = cacheGoods.goodsList
             lastNum = cacheGoods.lastNum
-            let goodListParams = {
-                start:lastNum,
-                end:(+lastNum) + (+num),
-                goodsList
+            let end = (+lastNum) + (+num)
+            if(end >= 24){
+                dataList = cacheGoods.dataList
+            }else{
+                let goodListParams = {
+                    start:lastNum,
+                    end,
+                    goodsList,
+                    dataList
+                }
+                let gap = ( new Date().getTime() - initDate)/1000
+                log('cahe gap', gap)
+                dataList = await handleGoodList(goodListParams)
+                let cacheGoodsNext = cacheGoods
+                cacheGoodsNext.lastNum=end
+                cacheGoodsNext.dataList = dataList.concat(cacheGoods.dataList)
+    
+                cacheObj({cacheGoods:cacheGoodsNext })
+
             }
-            let gap = ( new Date().getTime() - initDate)/1000
-            log('cahe gap', gap)
-            dataList = await handleGoodList(goodListParams)
+            
             gap = ( new Date().getTime() - initDate)/1000
             log('cahe end gap', gap)
             log('cache goodsList')
@@ -76,8 +89,8 @@ const searchJDPageData = async (ctx, next) => {
 
 async function login(){
     browser = await puppeteer.launch({
-        headless: false,
-        // headless: true,
+        // headless: false,
+        headless: true,
         args: ['--no-sandbox']
     })
     let url = 'https://pub.yunzhanxinxi.com'
@@ -101,6 +114,7 @@ async function login(){
     await page.waitForSelector('.close')
     await page.waitForTimeout(500)
     await page.click('.close>.dark')
+    await page.waitForTimeout(500)
 
 }
 
@@ -124,7 +138,8 @@ async function menuClick(type, params){
     //菜单
     if(type == 0){
         //详情
-        
+        await page.click('.layout_menu>li:nth-child(1)')
+        await page.waitForTimeout(500)
         await page.click('.layout_menu-items>li:nth-child(2)')
         await page.waitForTimeout(1000)
         
@@ -230,7 +245,8 @@ async function handleJDPage(params){
         goodName,
         pageNum,
         goodsList,
-        lastNum:num
+        lastNum:+num,
+        dataList:[]
     }
     cacheObj({cacheGoods:cacheGoodsNext })
     
