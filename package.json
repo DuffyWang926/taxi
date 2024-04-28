@@ -36,10 +36,7 @@
         "node-schedule": "^2.1.0",
         "puppeteer": "^13.0.0",
         "qrcode": "^1.5.0",
-<<<<<<< HEAD
         "request-promise": "^4.2.6",
-=======
->>>>>>> 70e9cd5447f1280c43912bfb9ffb805910563196
         "sequelize": "5.0.0-beta",
         "uuid": "^8.3.2"
     }
