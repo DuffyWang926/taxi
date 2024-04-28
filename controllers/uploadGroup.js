@@ -13,7 +13,8 @@ var uploadGroupFn = async (ctx, next) => {
     let now = new Date().getTime() + ''
     const fileExtension = ctx.file.mimetype.split('/').pop();
     let writePath = path.join(__dirname, '../groupImgs', now + '.' + fileExtension);
-    let filePath = 'http://127.0.0.1:3001/api/groupImg/' + now + '.' + fileExtension
+    // let filePath = 'http://127.0.0.1:3001/taxiapi/groupImg/' + now + '.' + fileExtension
+    let filePath = 'https://www.mengshikejiwang.top/taxiapi/groupImg/' + now + '.' + fileExtension
     // let filePath = 'https://www.mengshikejiwang.top/api/product/' + now
     
     try{
@@ -115,6 +116,6 @@ const getGroupImgsFn = async (ctx, next) => {
 };
 
 module.exports = {
-    'POST /api/uploadGroup': uploadGroupFn,
-    'GET /api/getGroupImgs': getGroupImgsFn
+    'POST /taxiapi/uploadGroup': uploadGroupFn,
+    'GET /taxiapi/getGroupImgs': getGroupImgsFn
 };

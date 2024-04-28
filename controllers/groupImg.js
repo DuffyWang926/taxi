@@ -11,5 +11,5 @@ const fn_product = async (ctx, next) => {
 };
 
 module.exports = {
-    'GET /api/groupImg/:name': fn_product
+    'GET /taxiapi/groupImg/:name': fn_product
 };
