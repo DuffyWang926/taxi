@@ -6,7 +6,7 @@ const controller = require('./controller');
 const cors = require('koa2-cors')
 
 
-// app.use(cors());
+app.use(cors());
 app.use(
   cors({
     origin: 'http://172.19.16.1:10086',

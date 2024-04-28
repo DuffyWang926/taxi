@@ -47,5 +47,5 @@ var fn_upload = async (ctx, next) => {
 };
 
 module.exports = {
-    'POST /api/upload': fn_upload
+    'POST /taxiapi/upload': fn_upload
 };
