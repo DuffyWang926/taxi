@@ -6,17 +6,17 @@ const controller = require('./controller');
 const cors = require('koa2-cors')
 
 
-// app.use(cors());
+app.use(cors());
 
-app.use(cors({
-  origin: function(ctx) {
-      if (ctx.url === '/test') {
-          return false;
-      }
-      return ['http://172.19.16.1:10086', 'http://192.168.0.110:10086'].includes(ctx.request.header.origin) ? ctx.request.header.origin : false; 
-  },
-  credentials: true,
-}));
+// app.use(cors({
+//   origin: function(ctx) {
+//       if (ctx.url === '/test') {
+//           return false;
+//       }
+//       return ['http://172.19.16.1:10086', 'http://192.168.0.110:10086'].includes(ctx.request.header.origin) ? ctx.request.header.origin : false; 
+//   },
+//   credentials: true,
+// }));
 app.use(bodyParser({
     enableTypes:['json', 'form', 'text'],
     encode: "utf-8"
