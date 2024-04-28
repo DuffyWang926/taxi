@@ -6,7 +6,6 @@ const controller = require('./controller');
 const cors = require('koa2-cors')
 
 
-<<<<<<< HEAD
 app.use(cors());
 app.use(
   cors({
@@ -14,14 +13,6 @@ app.use(
     credentials: true,
   })
 );
-=======
-
-
-
-
-
-app.use(cors());
->>>>>>> 70e9cd5447f1280c43912bfb9ffb805910563196
 app.use(bodyParser({
     enableTypes:['json', 'form', 'text'],
     encode: "utf-8"
