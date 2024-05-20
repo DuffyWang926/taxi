@@ -1,21 +1,21 @@
 const fs = require('fs')
 const model = require('../model');
 const path = require('path');
+const {baseUrl} = require('../constants/baseUrl');
 var uploadGroupFn = async (ctx, next) => {
     let code = 200
 
     let body = ctx.request.body
     console.log('body',body)
-    console.log('ctx.file',ctx.file)
     const { value, text } = body
     console.log("value",value)
     let fileBuffer = ctx.file.buffer
     let now = new Date().getTime() + ''
     const fileExtension = ctx.file.mimetype.split('/').pop();
     let writePath = path.join(__dirname, '../groupImgs', now + '.' + fileExtension);
-    // let filePath = 'http://127.0.0.1:3001/taxiapi/groupImg/' + now + '.' + fileExtension
-    let filePath = 'https://www.mengshikejiwang.top/taxiapi/groupImg/' + now + '.' + fileExtension
-    // let filePath = 'https://www.mengshikejiwang.top/api/product/' + now
+    let filePath = baseUrl + '/groupImg/' + now + '.' + fileExtension
+    
+    console.log("filePath",filePath)
     
     try{
         const directory = path.dirname(writePath);
