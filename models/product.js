@@ -1,27 +1,34 @@
 const db = require('../db');
 
 module.exports = db.defineModel('products', {
-    productId:db.STRING(30),
-    imgUrl: db.STRING(100),
-    type: db.STRING(20),
-    author: db.STRING(20),
-    title: db.STRING(40),
-    sum:db.STRING(30),
-    description: db.STRING(100),
-    createdAt: db.STRING(40),
-    updatedAt: db.STRING(40),
+    Id: {
+        type: db.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    title: db.STRING(255),
+    degree: db.STRING(5),
+    deliver: db.STRING(5),
+    address: db.STRING(255),
+    price: db.DECIMAL(10,2),
+    oldPrice: db.DECIMAL(10,2),
+    contact: db.STRING(30),
+    brand: db.STRING(20),
+    publisher: db.STRING(50),
+    description: db.TEXT,
 });
 
-// create table products (
-//     id varchar(50) not null,
-//     productId varchar(50) not null,
-//     imgUrl varchar(100),
-//     type varchar(20),
-//     author varchar(10),
-//     title varchar(20),
-//     sum varchar(20),
-//     description varchar(100),
-//     createdAt bigint,
-//     updatedAt bigint,
-//     primary key (id)
-// ) engine=innodb;
+
+// CREATE TABLE Products (
+//     Id INT AUTO_INCREMENT PRIMARY KEY,
+//     Title VARCHAR(255),
+//     Degree VARCHAR(5),
+//     Deliver VARCHAR(5),
+//     Address VARCHAR(255),
+//     Price DECIMAL(10,2),
+//     OldPrice DECIMAL(10,2),
+//     Contact VARCHAR(30),
+//     Brand VARCHAR(20),
+//     Publisher VARCHAR(50),
+//     Description TEXT
+//   );
