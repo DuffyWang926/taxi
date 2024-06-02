@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = db.defineModel('products', {
-    Id: {
+    id: {
         type: db.INTEGER,
         autoIncrement: true,
         primaryKey: true
@@ -16,6 +16,9 @@ module.exports = db.defineModel('products', {
     brand: db.STRING(20),
     publisher: db.STRING(50),
     description: db.TEXT,
+    updatedAt: db.STRING(40),
+    city: db.STRING(10),
+    
 });
 
 
@@ -30,5 +33,7 @@ module.exports = db.defineModel('products', {
 //     Contact VARCHAR(30),
 //     Brand VARCHAR(20),
 //     Publisher VARCHAR(50),
+//     UpdatedAt VARCHAR(50),
+//     City VARCHAR(50),
 //     Description TEXT
 //   );

@@ -19,6 +19,7 @@ var publishFn = async (ctx, next) => {
         publisher = "",
         imgUrlList,
     } = body;
+    let now = new Date().getTime() + ''
 
     let productModel = model.product
     let product = await  productModel.create({
@@ -32,19 +33,32 @@ var publishFn = async (ctx, next) => {
         brand,
         description,
         publisher,
+        updatedAt:now,
+        city:'上海市',
     })
-    console.log('product', product)
-    let productId = product && product.Id
+    console.log('productModel', product)
+    //product.id 为null 查找就有
+    let products = await  productModel.findAll({
+        where: {
+            updatedAt:now
+        },
+    })
+    product = products && products[0]
+    let productId = product && product.id
     let productImgModel = model.productImgs
     
     for (let url of imgUrlList) {
-        await productImgModel.update({
-            productId: productId, 
-        },{
-            where: {
-                imagePath: url 
-            }
-        });
+        await  productImgModel.create({
+            productId,
+            imagePath:url
+        })
+        // await productImgModel.update({
+        //     productId: productId, 
+        // },{
+        //     where: {
+        //         imagePath: url 
+        //     }
+        // });
     }
 
    
@@ -74,16 +88,16 @@ var fn_upload = async (ctx, next) => {
 
     }
     
-    let productImgModel = model.productImgs
-    let img = await  productImgModel.create({
-        productId:0,
-        imagePath:filePath
-    })
+    // let productImgModel = model.productImgs
+    // let img = await  productImgModel.create({
+    //     productId:0,
+    //     imagePath:filePath
+    // })
 
    
     ctx.response.body = {
         code,
-        filePath:img && img.imagePath
+        filePath:filePath
     }
 
 };

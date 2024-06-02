@@ -13,6 +13,7 @@ module.exports = db.defineModel('productImgs', {
 
 // CREATE TABLE ProductImgs (
 //     ID INT AUTO_INCREMENT PRIMARY KEY,
-//     ProductId bigint,
-//     ImagePath VARCHAR(100)
+//     ProductId INT,
+//     ImagePath VARCHAR(100),
+//     FOREIGN KEY (ProductId) REFERENCES Products(Id)
 // );
