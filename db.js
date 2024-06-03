@@ -81,9 +81,9 @@ function defineModel(name, attributes) {
                 let now = Date.now();
                 if (obj.isNewRecord) {
                     console.log('will create entity...' + obj);
-                    if (!obj.id) {
-                        obj.id = generateId();
-                    }
+                    // if (!obj.id) {
+                    //     obj.id = generateId();
+                    // }
                     // obj.createdAt = now;
                     // obj.updatedAt = now;
                     // obj.version = 0;
@@ -97,7 +97,7 @@ function defineModel(name, attributes) {
     });
 }
 
-const TYPES = ['STRING', 'INTEGER', 'BIGINT', 'TEXT', 'DOUBLE', 'DATEONLY', 'BOOLEAN'];
+const TYPES = ['STRING', 'INTEGER', 'BIGINT', 'TEXT', 'DOUBLE', 'DATEONLY', 'BOOLEAN', 'DECIMAL'];
 
 var exp = {
     defineModel: defineModel,

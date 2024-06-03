@@ -1,21 +1,21 @@
 const fs = require('fs')
 const model = require('../model');
 const path = require('path');
+const {baseUrl} = require('../constants/baseUrl');
 var uploadGroupFn = async (ctx, next) => {
     let code = 200
 
     let body = ctx.request.body
     console.log('body',body)
-    console.log('ctx.file',ctx.file)
     const { value, text } = body
     console.log("value",value)
     let fileBuffer = ctx.file.buffer
     let now = new Date().getTime() + ''
     const fileExtension = ctx.file.mimetype.split('/').pop();
     let writePath = path.join(__dirname, '../groupImgs', now + '.' + fileExtension);
-    // let filePath = 'http://127.0.0.1:3001/taxiapi/groupImg/' + now + '.' + fileExtension
-    let filePath = 'https://www.mengshikejiwang.top/taxiapi/groupImg/' + now + '.' + fileExtension
-    // let filePath = 'https://www.mengshikejiwang.top/api/product/' + now
+    let filePath = baseUrl + '/groupImg/' + now + '.' + fileExtension
+    
+    console.log("filePath",filePath)
     
     try{
         const directory = path.dirname(writePath);
@@ -97,15 +97,16 @@ const getGroupImgsFn = async (ctx, next) => {
     console.log(groupImgs)
     let data = []
     if(groupImgs && groupImgs.length > 0){
-        let item = groupImgs[0]
-        let createDate = item && item.createdAt
-        let now = new Date().getTime()
-        const weekDuration = 7 * 24 * 60 * 60 * 1000;
-        if (createDate && (now - createDate) <= weekDuration) {
-            data = groupImgs
-        } else {
-            data = []
-        }
+        // let item = groupImgs[0]
+        // let createDate = item && item.createdAt
+        // let now = new Date().getTime()
+        // const weekDuration = 7 * 24 * 60 * 60 * 1000;
+        // if (createDate && (now - createDate) <= weekDuration) {
+        //     data = groupImgs
+        // } else {
+        //     data = []
+        // }
+        data = groupImgs
     }
    
     ctx.response.body = {
