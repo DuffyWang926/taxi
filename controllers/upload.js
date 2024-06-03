@@ -74,10 +74,16 @@ var fn_upload = async (ctx, next) => {
     let now = new Date().getTime() + ''
     
     let code = 200
-    const fileExtension = ctx.file.mimetype.split('/').pop();
+    console.log('ctx.file', ctx.file)
+    console.log('ctx.file.mimetype', ctx.file.mimetype)
+    // const fileExtension = ctx.file.mimetype.split('/').pop();
     
-    let writePath = '../products/' + now +  '.' + fileExtension
-    let filePath = baseUrl + '/product/' + now +  '.' + fileExtension
+    // let writePath = '../products/' + now +  '.' + fileExtension
+    // let filePath = baseUrl + '/product/' + now +  '.' + fileExtension
+
+    
+    let writePath = '../products/' + now +  '.' + 'gif'
+    let filePath = baseUrl + '/product/' + now +  '.' + 'gif'
     
     try{
         fs.writeFile(writePath, fileBuffer, function(err) {
