@@ -16,12 +16,9 @@ module.exports = db.defineModel('products', {
     brand: db.STRING(20),
     publisher: db.STRING(50),
     description: db.TEXT,
-<<<<<<< HEAD
-=======
     updatedAt: db.STRING(40),
     city: db.STRING(10),
     
->>>>>>> 05f85f468194c32942410d96778e36a73529647d
 });
 
 
@@ -36,10 +33,7 @@ module.exports = db.defineModel('products', {
 //     Contact VARCHAR(30),
 //     Brand VARCHAR(20),
 //     Publisher VARCHAR(50),
-<<<<<<< HEAD
-=======
 //     UpdatedAt VARCHAR(50),
 //     City VARCHAR(50),
->>>>>>> 05f85f468194c32942410d96778e36a73529647d
 //     Description TEXT
 //   );
