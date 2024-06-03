@@ -11,3 +11,5 @@ const fn_product = async (ctx, next) => {
 module.exports = {
     'GET /api/product/:name': fn_product
 };
+
+   
