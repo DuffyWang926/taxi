@@ -74,8 +74,10 @@ var fn_upload = async (ctx, next) => {
     let now = new Date().getTime() + ''
     
     let code = 200
-    let writePath = '../products/' + now + '.gif'
-    let filePath = baseUrl + '/product/' + now
+    const fileExtension = ctx.file.mimetype.split('/').pop();
+    
+    let writePath = '../products/' + now +  '.' + fileExtension
+    let filePath = baseUrl + '/product/' + now +  '.' + fileExtension
     
     try{
         fs.writeFile(writePath, fileBuffer, function(err) {

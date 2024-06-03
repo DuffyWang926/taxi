@@ -3,7 +3,7 @@ const fn_product = async (ctx, next) => {
     console.log('imgs')
 
     const name = ctx.params.name;
-    const path = `../products/${name}.gif`;
+    const path = `../products/${name}`;
     ctx.attachment(decodeURI(path));
     await sendfile(ctx, path);
 };

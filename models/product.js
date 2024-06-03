@@ -22,18 +22,18 @@ module.exports = db.defineModel('products', {
 });
 
 
-// CREATE TABLE Products (
-//     Id INT AUTO_INCREMENT PRIMARY KEY,
-//     Title VARCHAR(255),
-//     Degree VARCHAR(5),
-//     Deliver VARCHAR(5),
-//     Address VARCHAR(255),
-//     Price DECIMAL(10,2),
-//     OldPrice DECIMAL(10,2),
-//     Contact VARCHAR(30),
-//     Brand VARCHAR(20),
-//     Publisher VARCHAR(50),
-//     UpdatedAt VARCHAR(50),
-//     City VARCHAR(50),
-//     Description TEXT
+// CREATE TABLE products (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     title VARCHAR(255),
+//     degree VARCHAR(5),
+//     deliver VARCHAR(5),
+//     address VARCHAR(255),
+//     price DECIMAL(10,2),
+//     oldprice DECIMAL(10,2),
+//     contact VARCHAR(30),
+//     brand VARCHAR(20),
+//     publisher VARCHAR(50),
+//     updatedat VARCHAR(50),
+//     city VARCHAR(50),
+//     description TEXT
 //   );

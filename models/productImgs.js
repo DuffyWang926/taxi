@@ -10,10 +10,8 @@ module.exports = db.defineModel('productImgs', {
     imagePath: db.STRING(100),
 });
 
-
-// CREATE TABLE ProductImgs (
-//     ID INT AUTO_INCREMENT PRIMARY KEY,
-//     ProductId INT,
-//     ImagePath VARCHAR(100),
-//     FOREIGN KEY (ProductId) REFERENCES Products(Id)
+// CREATE TABLE productImgs (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     productid INT,
+//     imagepath VARCHAR(100)
 // );
