@@ -1,49 +1,56 @@
 const model = require('../model');
 const fn_productList = async (ctx, next) => {
     let body = ctx.request.body
-    const { type, size } = body
+    const { type, page, pageSize } = body
     let productModel = model.product
+    let offset = ( +page -1) * (+pageSize)
 
     let productList = await  productModel.findAll({
         where: {
             
-        }
+        },
+        // include: [{
+        //     model: model.productImgs,
+        //     required: false,
+        // }],
+        offset,
+        limit: pageSize 
     })
     console.log(`find ${productList} productList:`);
-    let imgList = Array.isArray(productList) && productList.map( (v,i) =>{
-        let res = {
-            imgId:v.id,
-            imgUrl:v.imgUrl,
-            title:v.title,
-            author:v.author,
-            downSum:v.sum,
-            updatedAt:v.updatedAt
-        }
-        return res
-    })
-    if(type == 0){
-        imgList.sort((a,b) =>{
-            return a.downSum - b.downSum
+    
+    let productImgModel = model.productImgs    
+    let productEndList = []
+    for (let item of productList) {
+        let imgList = await  productImgModel.findAll({
+            where: {
+                productId:item.id
+            },
         })
-    }else if(type == 1){
-        imgList.sort((a,b) =>{
+        console.log('imgList',imgList)
+        let imgEndList = imgList.map( img => img.imagePath)
+        let plainItem = item.get({plain: true});
+        plainItem.imgList = imgEndList;
+        productEndList.push(plainItem)
+    }
+
+    
+                                                                                                                                                                                                                                                                                                                                                                                                                                      
+    if(type == 0){                                
+        productEndList.sort((a,b) =>{
             return a.updatedAt - b.updatedAt
         })
-    }
-    let procuctListEnd = []
-    if(size){
-        procuctListEnd = imgList.slice(0,size)
-    }else{
-        procuctListEnd = imgList
-    }
-    
-    let dataRes = {
-        productList:procuctListEnd,
+    }else if(type == 1){
+        productEndList.sort((a,b) =>{
+            return a.price - b.price
+        })
     }
         
-    ctx.response.body = dataRes
+    ctx.response.body = {
+        code:200,
+        data:productEndList,
+    }
 };
 
 module.exports = {
-    'POST /api/productlist': fn_productList
+    'POST /taxiapi/productlist': fn_productList
 };
