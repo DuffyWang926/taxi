@@ -31,6 +31,9 @@ const fn_productId = async (ctx, next) => {
     ctx.response.body = dataRes
 };
 
+
+
 module.exports = {
-    'POST /api/productId': fn_productId
+    'POST /api/productId': fn_productId,
+    
 };

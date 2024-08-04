@@ -18,6 +18,8 @@ module.exports = db.defineModel('products', {
     description: db.TEXT,
     updatedAt: db.STRING(40),
     city: db.STRING(10),
+    reportNum: db.STRING(5),
+    reportReason: db.STRING(100),
     
 });
 
@@ -35,5 +37,7 @@ module.exports = db.defineModel('products', {
 //     publisher VARCHAR(50),
 //     updatedat VARCHAR(50),
 //     city VARCHAR(50),
+//     reportNum VARCHAR(5),
+//     reportReason VARCHAR(100),
 //     description TEXT
 //   );

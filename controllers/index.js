@@ -1,6 +1,7 @@
 const axios = require('axios');
 const model = require('../model');
 const Sequelize = require('sequelize');
+const { computePoints } = require('./public');
 const Op = Sequelize.Op
 
 // var fn_login = async (ctx, next) => {
@@ -138,9 +139,10 @@ const fn_login = async (ctx, next) => {
      } = body
     console.log('code', code)
 
-    let secret = '7e0ea0dc0f29bbf4d77b8ec7d874167f'
+    let secret = '2abdd20b08d2f9591863835064199a9f'
+    let appid = 'wx23d3737a40bd607b'
     // let url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxe52a97ff5cbcfc9a&secret=${secret}&code=${code}&grant_type=authorization_code`
-    let url = `https://api.weixin.qq.com/sns/jscode2session?appid=wx06af68b47f96c574&secret=${secret}&js_code=${code}&grant_type=authorization_code`
+    let url = `https://api.weixin.qq.com/sns/jscode2session?appid=${secret}&secret=${secret}&js_code=${code}&grant_type=authorization_code`
     console.log('url', url)
     let response = await axios({
         method: "GET",
@@ -167,15 +169,18 @@ const fn_login = async (ctx, next) => {
                 nickName,
                 sex:''+gender,
                 province,
-                city:'上海市',
+                city:'北京市',
                 headUrl:avatarUrl,
                 openid,
                 unionid:'',
                 createdAt: now,
                 updatedAt: now,
+                points:'0.00'
             }
-            user = await  userModel.create(newUser)
             console.log('user', user.id)
+            console.log('newUser', newUser)
+
+            user = await  userModel.create(newUser)
             //id 为null，查询有id
             users = await  userModel.findAll({
                 where: {
@@ -184,6 +189,10 @@ const fn_login = async (ctx, next) => {
             })
             user = users.length && users[0]
             console.log('user', user.id)
+            //add point
+            if(upCode){
+                computePoints(upCode)
+            }
         }else if(users.length > 0){
             user = users.length && users[0]
         }

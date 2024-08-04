@@ -105,9 +105,44 @@ const deleteProducts = async (ctx, next) => {
         code:200,
     }
 };
+const reportProduct = async (ctx, next) => {
+    let body = ctx.request.body
+    const { id, reason } = body
+    let productModel = model.product
 
+    let products = await  productModel.findAll({
+        where: {
+            id:id
+        }
+    })
+    if(products && products.length > 0){
+        let product = products[0]
+        const { reportNum } = product
+        let nextNum = +reportNum + 1
+        let nextReason = reason
+        await productModel.update(
+            {
+                ...product,
+                reportNum:nextNum,
+                reportReason:nextReason
+            },
+            {
+                where: { id:id },
+            }
+        );
+
+    }
+    
+    
+    let dataRes = {
+        code:200,
+    }
+        
+    ctx.response.body = dataRes
+};
 
 module.exports = {
     'POST /taxiapi/productlist': fn_productList,
     'POST /taxiapi/deleteproducts': deleteProducts,
+    'POST /taxiapi/reportProduct': reportProduct,
 };

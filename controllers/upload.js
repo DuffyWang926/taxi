@@ -1,7 +1,7 @@
 const fs = require('fs')
 const model = require('../model');
 const {baseUrl} = require('../constants/baseUrl');
-
+const { computePoints } = require('./public');
 var publishFn = async (ctx, next) => {
     let body = ctx.request.body
     let code = 200
@@ -34,9 +34,11 @@ var publishFn = async (ctx, next) => {
         description,
         publisher,
         updatedAt:now,
-        city:'上海市',
+        city:'北京市',
+        reportNum:'0',
+        reportReason:''
     })
-    console.log('productModel', product)
+    
     //product.id 为null 查找就有
     let products = await  productModel.findAll({
         where: {
@@ -44,6 +46,7 @@ var publishFn = async (ctx, next) => {
         },
     })
     product = products && products[0]
+    console.log('product', product)
     let productId = product && product.id
     let productImgModel = model.productImgs
     
@@ -60,6 +63,8 @@ var publishFn = async (ctx, next) => {
         //     }
         // });
     }
+
+    await computePoints(publisher)
 
    
     ctx.response.body = {

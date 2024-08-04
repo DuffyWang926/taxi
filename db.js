@@ -23,18 +23,36 @@ const ID_TYPE = Sequelize.STRING(50);
 
 function defineModel(name, attributes) {
     var attrs = {};
+    console.log('attributes', attributes)
     for (let key in attributes) {
         let value = attributes[key];
+        console.log('value', value)
         if (typeof value === 'object' && value['type']) {
             value.allowNull = value.allowNull || false;
+            
+    
+            // 添加默认值
+            if (value.defaultValue === undefined) {
+                if (value.type === Sequelize.STRING) {
+                    value.defaultValue = '';
+                } else if (value.type === Sequelize.INTEGER) {
+                    value.defaultValue = 0;
+                }
+            }
+    
             attrs[key] = value;
+            console.log('key', key)
+            console.log('attrs[key]', attrs[key])
         } else {
             attrs[key] = {
                 type: value,
-                allowNull: false
+                allowNull: false,
+                defaultValue: value === Sequelize.STRING ? '' : 0 // 设置默认值
             };
+            console.log('attrs[key]2', attrs[key])
         }
     }
+    
     attrs.id = {
         type: ID_TYPE,
         primaryKey: true
@@ -81,9 +99,9 @@ function defineModel(name, attributes) {
                 let now = Date.now();
                 if (obj.isNewRecord) {
                     console.log('will create entity...' + obj);
-                    // if (!obj.id) {
-                    //     obj.id = generateId();
-                    // }
+                    if (!obj.userId) {
+                        obj.userId = generateId();
+                    }
                     // obj.createdAt = now;
                     // obj.updatedAt = now;
                     // obj.version = 0;
