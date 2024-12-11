@@ -5,7 +5,6 @@ const bodyParser = require('koa-bodyparser');
 const controller = require('./controller');
 const cors = require('koa2-cors')
 
-
 // app.use(cors());
 // app.use(cors({
 //   origin: function (origin, callback) {

@@ -21,6 +21,8 @@ module.exports = db.defineModel('users', {
         allowNull: false,
         defaultValue: '0'
     },
+    groupId: db.STRING(25),
+    
 });
 
 
@@ -36,6 +38,8 @@ module.exports = db.defineModel('users', {
 //     openid VARCHAR(100),
 //     headUrl VARCHAR(200),
 //     unionid VARCHAR(100),
+//     groupId VARCHAR(25),
+
 //     points VARCHAR(100) NOT NULL DEFAULT '0'
 // );
 

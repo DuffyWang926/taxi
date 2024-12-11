@@ -1,27 +1,70 @@
 const model = require('../model');
 const fs = require('fs');
+const { Op } = require('sequelize');
 const fn_productList = async (ctx, next) => {
     let body = ctx.request.body
-    const { type, page, pageSize, userId } = body
+    const { type = 0, page, pageSize, userId, city, keyword, isAll } = body
     let productModel = model.product
     let offset = ( +page -1) * (+pageSize)
     let searchObj = {}
-    if(userId){
-        searchObj = {
-            publisher:userId
-        }
+    let findObj = {}
+    let order = [['updatedAt', 'DESC']]
+    if(type == 0){                                
+        order = [['updatedAt', 'DESC']]
+    }else if(type == 1){
+        order = [['price', 'DESC']]
     }
+    if(isAll){
+        findObj={}
 
-    let productList = await  productModel.findAll({
-        where: searchObj,
-        // include: [{
-        //     model: model.productImgs,
-        //     required: false,
-        // }],
-        offset,
-        limit: pageSize 
-    })
-    console.log(`find ${productList} productList:`);
+    }else{
+        if(userId){
+            searchObj = {
+                publisher:userId
+            }
+            findObj = {
+                where: searchObj,
+                // include: [{
+                //     model: model.productImgs,
+                //     required: false,
+                // }],
+                order: order,
+                offset,
+                limit: pageSize 
+            }
+        }else if(city){
+            searchObj = {
+                cityCode:city,
+                title: {
+                    [Op.like]: `%${keyword}%` // 使用 Sequelize 的 like 操作符来查找 title 中包含关键字的记录
+                  }
+            }
+            findObj = {
+                where: searchObj,
+                // include: [{
+                //     model: model.productImgs,
+                //     required: false,
+                // }],
+                order: order,
+                offset,
+                limit: pageSize 
+            }
+        }else{
+            findObj = {
+                where: {},
+                // include: [{
+                //     model: model.productImgs,
+                //     required: false,
+                // }],
+                order: order,
+                offset,
+                limit: pageSize 
+            }
+        }
+
+    }
+    
+    let productList = await  productModel.findAll(findObj)
     
     let productImgModel = model.productImgs    
     let productEndList = []
@@ -31,7 +74,6 @@ const fn_productList = async (ctx, next) => {
                 productId:item.id
             },
         })
-        console.log('imgList',imgList)
         let imgEndList = imgList.map( img => img.imagePath)
         let plainItem = item.get({plain: true});
         plainItem.imgList = imgEndList;
@@ -40,15 +82,7 @@ const fn_productList = async (ctx, next) => {
 
     
                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    if(type == 0){                                
-        productEndList.sort((a,b) =>{
-            return a.updatedAt - b.updatedAt
-        })
-    }else if(type == 1){
-        productEndList.sort((a,b) =>{
-            return a.price - b.price
-        })
-    }
+    
         
     ctx.response.body = {
         code:200,

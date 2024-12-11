@@ -6,7 +6,6 @@ const Op = Sequelize.Op
 const fn_search = async (ctx, next) => {
     let body = ctx.request.body
     const { keyword } = body
-    console.log(keyword,'keyword')
     let productModel = model.product
 
     let products = await  productModel.findAll({
@@ -14,7 +13,6 @@ const fn_search = async (ctx, next) => {
             title: { [Op.like]: `%${keyword}%` } 
         }
     })
-    console.log(`find ${products} products:`);
     let imgList = Array.isArray(products) && products.map( (v,i) =>{
         let res = {
             imgId:v.id,

@@ -17,7 +17,7 @@ const computePoints = async (id) => {
                 points:nextPoint
             },
             {
-                where: { id:id },
+                where: { userId:id },
             }
         );
     }

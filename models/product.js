@@ -20,6 +20,12 @@ module.exports = db.defineModel('products', {
     city: db.STRING(10),
     reportNum: db.STRING(5),
     reportReason: db.STRING(100),
+    provinceCode: db.STRING(10),
+    province: db.STRING(10),
+    cityCode: db.STRING(10),
+    regionCode: db.STRING(10),
+    region: db.STRING(10),
+    
     
 });
 
@@ -39,5 +45,11 @@ module.exports = db.defineModel('products', {
 //     city VARCHAR(50),
 //     reportNum VARCHAR(5),
 //     reportReason VARCHAR(100),
+//     provinceCode VARCHAR(10),
+//     province VARCHAR(10),
+//     cityCode VARCHAR(10),
+//     regionCode VARCHAR(10),
+//     region VARCHAR(10),
+
 //     description TEXT
 //   );

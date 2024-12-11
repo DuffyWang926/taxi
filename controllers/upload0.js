@@ -1,4 +1,4 @@
-const sharp = require('sharp');
+// const sharp = require('sharp');
 const fs = require('fs')
 const path = require('path');
 const model = require('../model');
@@ -105,22 +105,22 @@ var fn_upload = async (ctx, next) => {
 
     
     try{
-        // fs.writeFile(writePath, fileBuffer, function(err) {
-        //     if (err) {
-        //         throw err;
-        //     }
-        // });
-
-        sharp(fileBuffer)
-            .resize(200, 200)
-            .jpeg({ quality: 80 })
-            .toFile(writePath, (err, info) => {
+        fs.writeFile(writePath, fileBuffer, function(err) {
             if (err) {
-                console.error(err);
-            } else {
-                console.log('Image processed:', info);
+                throw err;
             }
-            });
+        });
+
+        // sharp(fileBuffer)
+        //     .resize(200, 200)
+        //     .jpeg({ quality: 80 })
+        //     .toFile(writePath, (err, info) => {
+        //     if (err) {
+        //         console.error(err);
+        //     } else {
+        //         console.log('Image processed:', info);
+        //     }
+        //     });
         console.log(`Image processed and saved successfully at ${writePath}`);
     }catch(err){
         console.error('An error occurred during image processing:', err);

@@ -1,12 +1,11 @@
 const Sequelize = require('sequelize');
 
-const uuid = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 const config = require('./config');
 
-
 function generateId() {
-    return uuid.v4();
+    return uuidv4();
 }
 
 var sequelize = new Sequelize(config.database, config.username, config.password, {
@@ -23,10 +22,8 @@ const ID_TYPE = Sequelize.STRING(50);
 
 function defineModel(name, attributes) {
     var attrs = {};
-    console.log('attributes', attributes)
     for (let key in attributes) {
         let value = attributes[key];
-        console.log('value', value)
         if (typeof value === 'object' && value['type']) {
             value.allowNull = value.allowNull || false;
             
@@ -41,15 +38,12 @@ function defineModel(name, attributes) {
             }
     
             attrs[key] = value;
-            console.log('key', key)
-            console.log('attrs[key]', attrs[key])
         } else {
             attrs[key] = {
                 type: value,
                 allowNull: false,
                 defaultValue: value === Sequelize.STRING ? '' : 0 // 设置默认值
             };
-            console.log('attrs[key]2', attrs[key])
         }
     }
     

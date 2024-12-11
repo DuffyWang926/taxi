@@ -132,17 +132,19 @@ const fn_login = async (ctx, next) => {
     let body = ctx.request.body
     let { code, upCode = '',
         avatarUrl = '', 
-        city = '北京市', 
+        city = '', 
         gender = '', 
         nickName = '', 
-        province = ''
+        province = '',
+        groupId = '',
+        
      } = body
     console.log('code', code)
 
     let secret = '2abdd20b08d2f9591863835064199a9f'
     let appid = 'wx23d3737a40bd607b'
     // let url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxe52a97ff5cbcfc9a&secret=${secret}&code=${code}&grant_type=authorization_code`
-    let url = `https://api.weixin.qq.com/sns/jscode2session?appid=${secret}&secret=${secret}&js_code=${code}&grant_type=authorization_code`
+    let url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`
     console.log('url', url)
     let response = await axios({
         method: "GET",
@@ -150,8 +152,6 @@ const fn_login = async (ctx, next) => {
     })
     const { data={} } = response
     const {  session_key, openid, errcode } = data
-    console.log('DATA', data)
-    console.log('Time', new Date())
     let userInfo =  {}
     if(!errcode && openid){
         let userModel = model.user
@@ -175,11 +175,11 @@ const fn_login = async (ctx, next) => {
                 unionid:'',
                 createdAt: now,
                 updatedAt: now,
-                points:'0.00'
+                points:'10.00',
+                groupId
             }
             console.log('user', user.id)
             console.log('newUser', newUser)
-
             user = await  userModel.create(newUser)
             //id 为null，查询有id
             users = await  userModel.findAll({
@@ -195,6 +195,34 @@ const fn_login = async (ctx, next) => {
             }
         }else if(users.length > 0){
             user = users.length && users[0]
+            let oldGroupId = user.groupId
+            let oldName = user.nickName
+            console.log('oldName',oldName,nickName)
+            if( groupId && oldGroupId != groupId){
+                await userModel.update(
+                    {
+                        ...user,
+                        groupId:groupId
+                    },
+                    {
+                        where: { openid },
+                    }
+                );
+                user.groupId =  groupId
+            }
+            if(nickName && oldName != nickName){
+                await userModel.update(
+                    {
+                        ...user,
+                        nickName:nickName
+                    },
+                    {
+                        where: { openid },
+                    }
+                );
+                user.nickName =  nickName
+
+            }
         }
         returnCode = 200
         
